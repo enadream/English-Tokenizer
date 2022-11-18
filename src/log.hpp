@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <windows.h>
+
 // User libs
 #include "datatypes.hpp"
 
@@ -43,34 +44,34 @@ static Log s_log;
 //Numbers after 15 include background colors
 
 
-static inline void Color(int color)
+static inline void SetColor(int color)
 {
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
 }
 
 template <typename Type>
 Log Log::Warning(const Type& message) {
-	Color(6);
+	SetColor(6);
 	std::cout << "[WARNING]: ";
-	Color(7);
+	SetColor(7);
 	std::cout << message;
 	return s_log;
 }
 
 template <typename Type>
 Log Log::Info(const Type& message) {
-	Color(2);
+	SetColor(2);
 	std::cout << "[INFO]: ";
-	Color(7);
+	SetColor(7);
 	std::cout << message;
 	return s_log;
 }
 
 template <typename Type>
 Log Log::Error(const Type& message) {
-	Color(4);
+	SetColor(4);
 	std::cout << "[ERROR]: ";
-	Color(7);
+	SetColor(7);
 	std::cout << message;
 	return s_log;
 }

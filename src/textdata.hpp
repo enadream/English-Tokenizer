@@ -3,19 +3,21 @@
 
 // Macros
 // IOP TEXTS
+#ifdef IO_OPERATION_HPP
+
 #define HELP_ERROR_COMMAND_NFOUND "The command you have entered could not be identified. \
-If you don't know what to do, you can consider to use /help command or /exit simply.\n"
+If you don't know what to do, you can consider to use 'help' command or 'exit' simply.\n"
 
 #define HELP_PRONOUN_IDS "-p1: I\n-p2: You\n-p3: We\n-p4: \
 They\n-p5: He\n-p6: She\n-p7: It\n"
 
-#define HELP_MAIN "\t/exit : Use this command to terminate program.\n\
-\t/clear : Use this command to clear console.\n\
-\t/read : Use this command to read data from disk.\n\
-\t/parse : Use this command to parse verbs, nouns, etc.\n\
-\t/find : Use this command to find a verb, a noun etc.\n\
-\t/print : Use this command to print some data.\n\
-\t/help : Use this command to get information about commands.\n\
+#define HELP_MAIN "\texit : Use this command to terminate program.\n\
+\tclear : Use this command to clear console.\n\
+\tread : Use this command to read data from disk.\n\
+\tparse : Use this command to parse verbs, nouns, etc.\n\
+\tfind : Use this command to find a verb, a noun etc.\n\
+\tprint : Use this command to print some data.\n\
+\thelp : Use this command to get information about commands.\n\
 For the more information about spesific command or usage type \"/help /read\" i.e\n"
 
 #define HELP_TIME_TENSES "\t-t1: Past Simple Tense\n\
@@ -35,7 +37,13 @@ For the more information about spesific command or usage type \"/help /read\" i.
 \t-t15: Conditional Perfect Tense\n\
 \t-t16: Conditional Perfect Continuous Tense\n"
 
+#define HEADER_MESSAGE "************** Welcome to the ChatBot (V0.3 @enadream) **************\n\n"
+
+#endif
+
+
 // VERB TEXTS
+#ifdef VERB_HPP
 #define VERB_EX_NONE "None"
 #define VERB_EX_IRREGULAR_V1 "Irregular Verb"
 #define VERB_EX_IRREGULAR_V2 "Irregular Verb V2"
@@ -55,7 +63,5 @@ For the more information about spesific command or usage type \"/help /read\" i.
 #define VERB_EX_ENDSWITH_IE "Verb ends with 'ie'"
 #define VERB_EX_ENDSWITH_XVC "Verb has one syllable and ands with Vowel + Consonant"
 #define VERB_EX_DOUBLE_LAST "Double last char"
-
-
-
+#endif // VERB_HPP
 #endif // !HELP_DATA_H

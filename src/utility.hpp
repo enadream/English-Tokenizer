@@ -3,14 +3,13 @@
 #include "datatypes.hpp"
 
 template <typename type>
-inline void CopyData(type& dest, const type& target, uint32 size) {
+inline void CopyData(type& dest, const type& target, const uint32 size) {
 	for (uint32 i = 0; i < size; i++) {
 		(&dest)[i] = (&target)[i];
 	}
 }
 
-template <typename type>
-inline uint32 CopyStr(type& dest, const type& target, uint32 size = 0, const char break_chr = '\0') {
+inline uint32 CopyStr(char& dest, const char& target, uint32 size = 0, const char break_chr = '\0') {
 	int i = 0;
 	if (size > 0) // When user sent the size
 		for (; i < size; i++) {
@@ -194,8 +193,9 @@ inline uint32 SizeOfStr(const char& str, const char& end_char = '\0') {
 		if ((&str)[i] == end_char)
 			return ++i;
 	}
-}
 
+	return 0;
+}
 
 struct MyString
 {

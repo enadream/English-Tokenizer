@@ -6,22 +6,37 @@
 
 #include <iostream>
 #include <thread>
+#include <windows.h>
 
 // User defined headers
 #include "iooperation.hpp"
-#include "log.hpp"
 #include "verb.hpp"
 
 
-
 int main() {
-	Color(1);
-	std::cout << "************** Welcome to the ChatBot (V0.3 @enadream) **************\n\n" << std::endl;
-	Color(7);
+	// Set output mode to handle virtual terminal sequences
+	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (hOut == INVALID_HANDLE_VALUE)
+	{
+		return GetLastError();
+	}
+
+	DWORD dwMode = 0;
+	if (!GetConsoleMode(hOut, &dwMode))
+	{
+		return GetLastError();
+	}
+
+	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+	if (!SetConsoleMode(hOut, dwMode))
+	{
+		return GetLastError();
+	}
 
 	IOOperation program;
 	program.StartCLI();
 
+	//std::cout << "Size: " << sizeof(verb::Verb);
 
 	//Tokenizer machine;
 	//// Input char area

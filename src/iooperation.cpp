@@ -59,18 +59,29 @@ void IOOperation::StartCLI() {
 
 	verb::VerbHandler verb;
 
+	auto printHeader = []() {
+		SetColor(3);
+		std::cout << "__________________ Welcome to the ChatBot (V0.3 @enadream) __________________\n\n" << std::endl;
+		SetColor(7);
+	};
+
+	printHeader();
+
 	while (true) {
+		SetColor(3);
+		std::cout << "ECLI $ ";
+		SetColor(7);
 		std::cin.getline(line, COMMAND_LINE_LENGTH);
 
-		if (line[0] != '/') { // Error commands have to start with '/' letter
-			Log::Error("Command Line has to start with '/' char.") << "\n\n";
-			continue;
-		}
+		//if (line[0] != '/') { // Error commands have to start with '/' letter
+		//	Log::Error("Command Line has to start with '/' char.") << "\n\n";
+		//	continue;
+		//}
 
-		if (DoesContain(*"exit ", line[1])) {
+		if (DoesContain(*"exit ", line[0])) {
 			break;
 		}
-		else if (DoesContain(*"delete ", line[1])) {
+		else if (DoesContain(*"delete ", line[0])) {
 			ParseParameters(line[7], *params_and_data); // Parse all parameters
 
 			if (DoesContainParameter(*"command_parse", *params_and_data, *param_value))
@@ -88,7 +99,7 @@ void IOOperation::StartCLI() {
 
 			std::cout << "\n";
 		}
-		else if (DoesContain(*"read ", line[1])) {
+		else if (DoesContain(*"read ", line[0])) {
 			ParseParameters(line[5], *params_and_data); // Parse all parameters
 
 			if (DoesContainParameter(*"command_parse", *params_and_data, *param_value))
@@ -115,14 +126,42 @@ void IOOperation::StartCLI() {
 			}
 			std::cout << "\n";
 		}
-		else if (DoesContain(*"parse ", line[1])) { // /parse
+		else if (DoesContain(*"parse ", line[0])) { // /parse
 			ParseParameters(line[6], *params_and_data); // Parse all parameters
 
 			if (DoesContainParameter(*"command_parse", *params_and_data, *param_value))
 				Log::Info("COMMAND PARSE: ") << params_and_data << "\n";
 
 			if (DoesContainParameter(*"verb", *params_and_data, *param_value)) {
-
+				if (buffer_capacity == 0) { // Capacity Check
+					IncreaseCapacity();
+				}
+				switch (verb.ParseVerb(*param_value, *io_buffer, true))
+				{
+				case 1:
+					Log::Info("Verb has found:\n") << io_buffer;
+					break;
+				case 2:
+					Log::Warning("The input is empty.\n");
+					break;
+				case -1:
+					Log::Warning("No verb has found.\n");
+					break;
+				case -2:
+					Log::Warning("The input contains some characters which is not alphabetic.\n");
+					break;
+				case -3:
+					Log::Warning("The first character of the verb cannot be hyphen.\n");
+					break;
+				case -4:
+					Log::Warning("The verb cannot be less than 2 characters.\n");
+					break;
+				case -5:
+					Log::Warning("Character size exceeds ") << VERB_CHAR_SIZE << " size.\n";
+					break;
+				default:
+					break;
+				}
 			}
 			else if (DoesContainParameter(*"noun", *params_and_data, *param_value)) {
 				Log::Info("NOUN: ") << param_value << "\n";
@@ -131,7 +170,7 @@ void IOOperation::StartCLI() {
 
 			std::cout << "\n";
 		}
-		else if (DoesContain(*"find ", line[1])) { // /find
+		else if (DoesContain(*"find ", line[0])) { // /find
 			ParseParameters(line[5], *params_and_data); // Parse all parameters
 
 			if (DoesContainParameter(*"command_parse", *params_and_data, *param_value)) // Show Cli
@@ -143,7 +182,7 @@ void IOOperation::StartCLI() {
 				switch (verb.ParseVerb(*param_value, *io_buffer))
 				{
 				case 1:
-					Log::Info("Verb has found:\n") << io_buffer << "\n";
+					Log::Info("Verb has found:\n") << io_buffer;
 					break;
 				case 2:
 					Log::Warning("The input is empty.\n");
@@ -170,7 +209,7 @@ void IOOperation::StartCLI() {
 
 			std::cout << "\n";
 		}
-		else if (DoesContain(*"print ", line[1])) {
+		else if (DoesContain(*"print ", line[0])) {
 			ParseParameters(line[6], *params_and_data); // Parse all parameters
 
 			if (DoesContainParameter(*"command_parse", *params_and_data, *param_value)) {
@@ -196,10 +235,11 @@ void IOOperation::StartCLI() {
 			}
 			std::cout << "\n";
 		}
-		else if (DoesContain(*"clear ", line[1])) {
+		else if (DoesContain(*"clear ", line[0])) {
 			system("CLS");
+			printHeader();
 		}
-		else if (DoesContain(*"help ", line[1])) {
+		else if (DoesContain(*"help ", line[0])) {
 			ParseParameters(line[5], *params_and_data, '/'); // Parse all parameters
 
 			if (DoesContainParameter(*"tenses", *params_and_data, *param_value)) {
