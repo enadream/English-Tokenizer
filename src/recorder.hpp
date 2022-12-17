@@ -1,7 +1,7 @@
 #ifndef RECORDER_HPP
 #define RECORDER_HPP
 
-#include "datatypes.hpp"
+#include "misc/data_types.hpp"
 
 typedef uint16 id_size; // Size of alphabet ID
 

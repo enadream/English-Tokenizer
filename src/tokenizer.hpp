@@ -1,42 +1,97 @@
 #ifndef TOKENIZER_HPP
 #define TOKENIZER_HPP
-#include "datatypes.hpp"
 
+// User defined libs
+#include "misc/data_types.hpp"
+#include "misc/string.hpp"
+#include "misc/array.hpp"
 
-#define TOKEN_CHAR_SIZE 3000    // 3000 byte
-#define TOKEN_SIZE 700         // 11 200 byte
-#define SENTENCE_AMOUNT 250    // 4000 byte
+#define SENTENCE_AMOUNT 100    // 1600 byte
+#define MIN_TOKEN_AMOUNT 16
 
-typedef struct Token      // 16 byte
-{
-	char* start_address;  // 8 byte
-	uint32 index;         // 4 byte
-	uint16 size;          // 2 byte	
-}Token;
+namespace tokenizer {
+	class Sentence // 16 byte
+	{
+	private:
+		String* tokens = nullptr; // 8 byte
+		uint32 amount = 0; // 4 byte
+		uint32 capacity = 0; // 4 byte
+	public:
+		Sentence() = default;
+		explicit Sentence(uint32 capacity_);
+		~Sentence();
 
+		void FreeSentence();
+		void IncreaseSize(uint32 add_capacity = MIN_TOKEN_AMOUNT);
+		void NewMemory(uint32 new_capacity);
+		String& CreateToken();
+		String& CreateToken(uint32 exact_size);
+		String& CreateToken(const char* word, const uint32& token_length);
+		String& CreateToken(String& old_str);
+		String& LastToken();
 
-typedef struct Sentence   // 16 byte
-{
-	Token* first_token;   // 8 byte
-	uint32 index;         // 4 byte
-	uint16 token_amount;  // 2 byte	
-}Sentence;
+		uint32 Amount()const;
+		const String* Tokens() const;
 
-class Tokenizer {
-private:
-	Token tokens[TOKEN_SIZE];				// 11200 byte
-	Sentence sentences[SENTENCE_AMOUNT];	// 4000 byte
-	char characters[TOKEN_CHAR_SIZE];		// 3000 byte
-	int32 lastTokenIndex;                   // 4 byte
-	int32 lastSentenceIndex;				// 4 byte
-	int32 lastCharIndex;                    // 4 byte
-public:
-	Tokenizer();
-	void ParseClause(const char& sentence);
-	void GetAllSentences(char& out_string) const;
+		String& operator[](uint32 index);
+		const String& operator[](uint32 index) const;
 
-};
+	};
 
+	class Tokenizer {
+	private:
+		util::Array<Sentence, SENTENCE_AMOUNT> sentences; // 16 * SENTENCE_AMOUNT byte
 
+	public:
+		Tokenizer() = default;
+		int8 ParseClause(const String& sentence);
+		int8 GetAllSentences(String& out_string) const;
+		void FreeAll();
+
+	};
+}
+
+namespace util {
+	inline uint8 IsEndingPunctuation(const char& one_char) {
+		switch (one_char)
+		{
+		case  '.': // Full stop
+			return 1;
+		case  '?': // Question mark
+			return 2;
+		case  '!': // Exclamation point
+			return 3;
+		default:
+			return 0;
+		}
+	}
+
+	inline uint8 IsPunctuation(const char& one_char) {
+
+		switch (one_char)
+		{
+		case  ',':	    // Comma
+			return 1;
+		case  '\"':		// Quotation Mark
+			return 2;
+		case  ':':		// Colon Mark
+			return 3;
+		case  ';':		// Semicolon Mark
+			return 4;
+		case  '(':		// Open Parantheses
+			return 5;
+		case  ')':		// Close Parantheses
+			return 6;
+		case  '[':		// Open Brackets
+			return 7;
+		case  ']':		// Close Brackets
+			return 8;
+		case  '/':		// Slash
+			return 9;
+		default:
+			return 0;
+		}
+	}
+}
 
 #endif // !TOKENIZER_H

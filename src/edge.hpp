@@ -2,7 +2,7 @@
 #define EDGE_HPP
 
 #include "node.hpp"
-#include "datatypes.hpp"
+#include "misc/data_types.hpp"
 #include "recorder.hpp"
 
 class Node;

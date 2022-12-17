@@ -5,7 +5,7 @@
 
 
 // User libs
-#include "datatypes.hpp"
+#include "misc/data_types.hpp"
 
 class Clock {
 private:
@@ -16,8 +16,8 @@ public:
 	Clock();
 	~Clock();
 
-	void StartTime();
-	void EndTime();
+	void StartTimer();
+	void EndTimer();
 	long long GetDuration(const char& type = *"s");
 };
 

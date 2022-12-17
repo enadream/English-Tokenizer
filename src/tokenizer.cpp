@@ -1,199 +1,241 @@
 #include "tokenizer.hpp"
-#include "utility.hpp"
+#include "misc/util.hpp"
 
-Tokenizer::Tokenizer() { // Constructor
-	lastTokenIndex = -1;
-	lastCharIndex = -1;
-	lastSentenceIndex = -1;
-}
+#define TOKEN_INCR_COEF 2
+#define SENTENCE_DEBUG 1
 
-void Tokenizer::ParseClause(const char& input_str) {
+namespace tokenizer {
 
-	bool newToken = true;
-	bool newSentence = true;
+#pragma region Sentence
 
-	auto initNextToken = [&]() { // Initialize new token with lastCharIndex+1
-		tokens[++lastTokenIndex].start_address = &characters[++lastCharIndex];
-		tokens[lastTokenIndex].size = 1;
-		tokens[lastTokenIndex].index = lastTokenIndex;
-	};
+	Sentence::Sentence(uint32 capacity_) {
+		NewMemory(capacity_);
+	}
 
-	auto finishCurrentToken = [&]() { // Increase size and add terminal charachter
-		tokens[lastTokenIndex].size += 1;
-		characters[++lastCharIndex] = '\0';
-	};
+	Sentence::~Sentence() {
+		delete[] tokens;
+	}
 
-	uint8 is_ending = false;
-	uint8 is_punctuation = false;
-
-	for (int i = 0; i < 10000; i++) { // Parse sentences into tokens
-		if ((&input_str)[i] == '\0') {
-			break;
-		}
-		if ((&input_str)[i] != ' ' && (&input_str)[i] != '\n') {
-			// If not ending
-			if (is_ending = IsEndingPunctuation((&input_str)[i]))
-				is_punctuation = false;
+	void Sentence::NewMemory(uint32 new_capacity) {
+		if (capacity < new_capacity) { // If space is not enough
+			// Delete old space
+			delete[] tokens;
+			// Update capacity
+			if (new_capacity > MIN_INCREASE_SIZE)
+				capacity = new_capacity + 1; // Always add one more to considering \0 symbol
 			else
-				is_punctuation = IsPunctuation((&input_str)[i]);
-
-			if (newToken) { // initialize new token
-				if (is_ending) { // end the sentence 
-					// example input "word ???" ??? has repetition
-					if (newSentence) { // the first token of a sentence cannot be an ending punctuation i.e "what ???"
-						if (lastTokenIndex >= 0) {
-							// Add endind character to charachter, so override \0
-							characters[lastCharIndex] = (&input_str)[i];
-
-							// End opened token
-							finishCurrentToken();
-						}
-						continue;
-					}
-
-					// example input "word ?"
-					// Create new token for ending punctuation
-					initNextToken();
-					sentences[lastSentenceIndex].token_amount += 1;
-					// Write last char to chars array
-					characters[lastCharIndex] = (&input_str)[i];
-					// End opened token
-					finishCurrentToken();
-					// Activate new sentence gate
-					newSentence = true;
-
-					continue;
-				}
-
-				// Start new token
-				initNextToken();
-				// Add character to token
-				characters[lastCharIndex] = (&input_str)[i];
-
-				if (is_punctuation) { // When the input is punctiation
-					finishCurrentToken();
-				}
-				else {
-					newToken = false;
-				}
-
-				if (newSentence) { // Checks if the new sentence activated
-					sentences[++lastSentenceIndex].first_token = &tokens[lastTokenIndex];
-					sentences[lastSentenceIndex].index = lastSentenceIndex;
-					sentences[lastSentenceIndex].token_amount = 1;
-					newSentence = false;
-				}
-				else { // increase token amount if new sentence is not activated
-					sentences[lastSentenceIndex].token_amount += 1;
-				}
-			}
-			else { // If token is continueing
-				// if punctuation connect with letters i.e 5
-				if (is_ending || is_punctuation) {
-
-					// Finishing the current token
-					finishCurrentToken();
-
-					// Initializing next token
-					initNextToken();
-					sentences[lastSentenceIndex].token_amount += 1;
-
-					// Add ending punctuation to token
-					characters[lastCharIndex] = (&input_str)[i];
-
-					// End new token and add terminal character
-					finishCurrentToken();
-
-					// Activate new token status
-					newToken = true;
-
-					if (is_ending) { // if ending
-						newSentence = true;
-					}
-
-					// Continue loop to avoid charachter add
-					continue;
-				}
-
-				tokens[lastTokenIndex].size += 1;
-				characters[++lastCharIndex] = (&input_str)[i];
-			}
+				capacity = MIN_INCREASE_SIZE;
+			// Create new space
+			tokens = new String[capacity];
 		}
-		else {
-			if (newToken == false) { // When the ending of a token
-				// increase the currect token size with 1 
-				tokens[lastTokenIndex].size += 1;
-				// add ending character to clauses to indicate token
-				characters[++lastCharIndex] = '\0';
+	}
+
+	void Sentence::IncreaseSize(uint32 add_capacity) {
+		// Copy old pointer
+		String* old_p = tokens;
+		// update capacity
+		if (capacity == 0)
+			capacity = MIN_TOKEN_AMOUNT;
+		else if (add_capacity > capacity * (TOKEN_INCR_COEF - 1))
+			capacity += add_capacity;
+		else
+			capacity *= TOKEN_INCR_COEF;
+		// Create new space
+		tokens = new String[capacity];
+		// Transfer string data to new space
+		util::StrTransfer(tokens, old_p, amount);
+		// delete old data
+		delete[] old_p;
+	}
+
+	void Sentence::FreeSentence() {
+		// delete tokens
+		delete[] tokens;
+		// set size and capacity 0
+		tokens = nullptr;
+		amount = 0;
+		capacity = 0;
+	}
+
+	String& Sentence::CreateToken() {
+		if (amount + 1 > capacity) {
+			IncreaseSize();
+		}
+		amount += 1;
+		return tokens[amount - 1];
+	}
+
+	String& Sentence::CreateToken(uint32 exact_size) {
+		if (amount + 1 > capacity) {
+			IncreaseSize();
+		}
+		// Allocate memory with exact_size
+		tokens[amount].NewMemory(exact_size, true);
+		amount += 1;
+		return tokens[amount - 1];
+	}
+
+	String& Sentence::CreateToken(String& old_str) {
+		if (amount + 1 > capacity) {
+			IncreaseSize();
+		}
+
+		tokens[amount] << old_str;
+		amount += 1;
+		return tokens[amount - 1];
+	}
+
+	String& Sentence::CreateToken(const char* word, const uint32& token_length) {
+		if (amount + 1 > capacity) {
+			IncreaseSize();
+		}
+
+		tokens[amount].Append(word, token_length);
+		amount += 1;
+		return tokens[amount - 1];
+	}
+
+
+
+	String& Sentence::LastToken() {
+#if SENTENCE_DEBUG
+		if (amount == 0)
+			__debugbreak();
+#endif
+		return tokens[amount - 1];
+	}
+
+
+	uint32 Sentence::Amount() const {
+		return amount;
+	}
+
+	const String* Sentence::Tokens() const {
+		return tokens;
+	}
+
+	String& Sentence::operator[](uint32 index) {
+		return tokens[index];
+	}
+
+	const String& Sentence::operator[](uint32 index) const {
+		return tokens[index];
+	}
+#pragma endregion
+
+
+#pragma region Tokenizer
+	int8 Tokenizer::ParseClause(const String& string) {
+#define DEFAULT_TOKEN_SIZE 16
+
+		uint32 lastSentenceIndex = 0;
+
+		bool newToken = false;
+		bool newSentence = false;
+		bool isSentenceEmpty = false; // This has to be false so that if user wrongly start sentence with ending it won't crash
+
+		uint8 is_ending = false;
+		uint8 is_punctuation = false;
+
+		auto createEmptyToken = [&]() {
+			sentences[lastSentenceIndex].CreateToken(DEFAULT_TOKEN_SIZE);
+			newToken = false;
+		};
+
+		// Create first empty token
+		sentences[lastSentenceIndex].CreateToken(DEFAULT_TOKEN_SIZE);
+
+		for (int i = 0; i < string.Length(); i++) { // Parse sentences into tokens
+			if (string[i] == '\0') {
+				break;
+			}
+
+			if (string[i] == ' ' || string[i] == '\n' || string[i] == '\t') {
+				if (newToken) { // If requested new token
+					createEmptyToken();
+				}
+				continue;
+			}
+			else if (util::IsPunctuation(string[i])) {
+				// If last token is empty
+				if (sentences[lastSentenceIndex].LastToken().Length() == 0)
+					sentences[lastSentenceIndex].LastToken() += string[i];
+				else // Create new token and assign value
+					sentences[lastSentenceIndex].CreateToken(DEFAULT_TOKEN_SIZE / 4) += string[i];
+				// Create new space
+				createEmptyToken();
+				isSentenceEmpty = false;
+			}
+			else if (util::IsEndingPunctuation(string[i])) {
+				if (isSentenceEmpty) { // If sentence is empty add ending punctuation to last sentence
+					sentences[lastSentenceIndex - 1].LastToken() += string[i];
+				}
+				else { // If current sentence not empty
+					if (sentences[lastSentenceIndex].LastToken().Length() == 0)
+						sentences[lastSentenceIndex].LastToken() += string[i];
+					else // Create new token and assign ending punctuation
+						sentences[lastSentenceIndex].CreateToken(DEFAULT_TOKEN_SIZE / 4) += string[i];
+
+					lastSentenceIndex += 1;
+					isSentenceEmpty = true;
+
+					// Create new space
+					createEmptyToken();
+				}
+			}
+			else {
+				sentences[lastSentenceIndex].LastToken() += string[i];
+				isSentenceEmpty = false;
 				newToken = true;
 			}
 		}
-	}
 
-	if (newToken == false) { // Finish the tokenizing
-		// increase the currect token size with 1 
-		tokens[lastTokenIndex].size += 1;
-		// add ending character to clauses to indicate token
-		characters[++lastCharIndex] = '\0';
-		newToken = true;
-	}
-}
-
-void Tokenizer::GetAllSentences(char& out_string) const {
-	int lastStrIndex = -1;
-	int lastTokenIndex = -1;
-
-	auto writeIntToString = [&](const uint32& number) {
-		uint32 newNumber;
-		char reversed_arr[10];
-		newNumber = number;
-		uint8 out_size = 0;
-
-		// Reduce and add to char array
-		for (uint8 i = 0; i < 10; i++) {
-			if (newNumber > 9) {
-				out_size += 1;
-				reversed_arr[i] = digitToChar(newNumber % 10);
-				newNumber /= 10;
-			}
-			else {
-				out_size += 1;
-				reversed_arr[i] = digitToChar(newNumber);
-				break;
-			}
-		}
-		// swap chars 
-		for (int i = 0; i < out_size; i++)
-		{
-			(&out_string)[out_size + lastStrIndex - i] = reversed_arr[i];
+		if (isSentenceEmpty) {
+			sentences[lastSentenceIndex].FreeSentence();
 		}
 
-		lastStrIndex += out_size;
-	};
+		if (string.Length() > 0)
+			return 1;
+		else
+			return 0;
+	}
 
-	for (uint32 i = 0; i < lastSentenceIndex + 1; i++) { // Copy each sentence
-		(&out_string)[++lastStrIndex] = '[';
-		writeIntToString(sentences[i].index);
-		(&out_string)[++lastStrIndex] = ']';
-		(&out_string)[++lastStrIndex] = ':';
+	int8 Tokenizer::GetAllSentences(String& string) const {
+		int lastStrIndex = -1;
+		int lastTokenIndex = 0;
+		bool contentFound = false;
 
-		for (int j = 0; j < sentences[i].token_amount; j++) // Copy each token
-		{
-			(&out_string)[++lastStrIndex] = '[';
+		for (uint32 i = 0; sentences[i].Tokens() != nullptr; i++) { // Copy each sentence
+			string += '[';
+			util::IntToStr(string, i + 1);
+			string += "]:";
 
-			lastTokenIndex += 1;
-			for (int k = 0; k < tokens[lastTokenIndex].size - 1; k++) // Copy each char
+			for (int j = 0; j < sentences[i].Amount(); j++) // Copy each token
 			{
-				(&out_string)[++lastStrIndex] = *(tokens[lastTokenIndex].start_address + k);
+				string += '[';
+				string.Append(sentences[i][j].Chars(), sentences[i][j].Length());
+				string += "] ";
+				lastTokenIndex += 1;
 			}
 
-			(&out_string)[++lastStrIndex] = ']';
-			(&out_string)[++lastStrIndex] = ' ';
+			string += '\n';
+
+			contentFound = true;
 		}
 
-		(&out_string)[++lastStrIndex] = '\n';
+		string.EndString();
+
+		if (contentFound)
+			return 1;
+		else
+			return 0;
 	}
 
-	(&out_string)[++lastStrIndex] = '\0';
+	void Tokenizer::FreeAll() {
+		for (uint32 i = 0; sentences[i].Tokens() != nullptr; i++) {
+			sentences[i].FreeSentence();
+		}
+	}
 
 }
+#pragma endregion

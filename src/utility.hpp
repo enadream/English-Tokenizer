@@ -1,9 +1,16 @@
-#ifndef MISC_HPP
-#define MISC_HPP
-#include "datatypes.hpp"
+#ifndef UTILITY_HPP
+#define UTILITY_HPP
+#include "misc/data_types.hpp"
+
+//template <typename type>
+//inline void CopyData(type* dest, const type* target, const uint32& size) {
+//	for (uint32 i = 0; i < size; i++) {
+//		dest[i] = target[i];
+//	}
+//}
 
 template <typename type>
-inline void CopyData(type& dest, const type& target, const uint32 size) {
+inline void CopyData(type& dest, const type& target, const uint32& size) {
 	for (uint32 i = 0; i < size; i++) {
 		(&dest)[i] = (&target)[i];
 	}
@@ -121,20 +128,17 @@ inline uint8 IsPunctuation(const char& one_char) {
 }
 
 static bool DoesContain(const char& command_str, const char& line_str) { // True if the string contains command
-
 	for (uint16 i = 0; i < UINT16_MAX; i++)
 	{
 		if ((&command_str)[i] == '\0') { // The string contains command and successfully ended
 			return true;
 		}
-
 		if ((&line_str)[i] == '\0') {	 // When the first string ended
 			if ((&command_str)[i] == ' ')
 				return true;
 			else
 				return false;
 		}
-
 		if ((&line_str)[i] == (&command_str)[i]) { // when the chars are same
 			continue;
 		}
@@ -142,7 +146,6 @@ static bool DoesContain(const char& command_str, const char& line_str) { // True
 			return false; // When the chars are different
 		}
 	}
-
 	return false; // The lenght of chars exceeds UINT16 MAX value
 }
 
@@ -188,12 +191,12 @@ static uint8 IntToStr(char& dest, const uint64& number) {
 	return out_size;
 }
 
-inline uint32 SizeOfStr(const char& str, const char& end_char = '\0') {
+template <typename Type>
+inline uint32 SizeUntilValue(const Type* str, const Type& end_char = '\0') { // Returns size until a character or any value
 	for (uint32 i = 0; i < UINT32_MAX; i++) {
-		if ((&str)[i] == end_char)
-			return ++i;
+		if (str[i] == end_char)
+			return i; // The end_char excluded
 	}
-
 	return 0;
 }
 
@@ -263,4 +266,4 @@ struct MyString
 	}
 };
 
-#endif // !MISC_H
+#endif // !UTILITY_HPP

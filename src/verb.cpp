@@ -1,14 +1,14 @@
 // User defined libs
 #include "verb.hpp"
-#include "utility.hpp"
 #include "log.hpp"
-#include "textdata.hpp"
+#include "misc/util.hpp"
+#include "text_data.hpp"
 
 #define VERB_SIZE 32  // 32 default
 #define VERB_SIZE_HYPHEN 4
 #define VERB_ROW 26
 #define VERB_COL 27
-#define SIZE_INCREASE_COEFFICIENT 4 // 4 default
+#define VERB_SIZE_INCREASE_COEFFICIENT 4 // 4 default
 #define VERB_LINE_LENGHT 100
 
 namespace verb {
@@ -63,293 +63,277 @@ namespace verb {
 			}
 		}
 
-		// Delete Irregular records
-		for (int i = 0; i < irrVerbCollection.amount; i++) {
+		// Delete irregular verb collections
+		if (irrVerbCollection.verbs != nullptr) {
 			delete[] irrVerbCollection.verbs;
 			irrVerbCollection.verbs = nullptr;
 			irrVerbCollection.amount = 0;
 			irrVerbCollection.capacity = 0;
 		}
+
 		return 0;
 	}
 
 
-	void VerbHandler::MultipleVerbAdder(const char& file) { // This function add multiple verbs to ram
-		uint16 _successfull = 0;
-		uint16 _nonAlphabetic = 0;
-		uint16 _charExceedsSize = 0;
-		uint16 _charSizeSmaller2 = 0;
-		uint16 _notUnique = 0;
+	void VerbHandler::MultipleVerbAdder(const char* file, const uint64& size) { // This function add multiple verbs to ram
+		uint32 _successfull = 0;
+		uint32 _nonAlphabetic = 0;
+		uint32 _charExceedsSize = 0;
+		uint32 _charSizeSmaller2 = 0;
+		uint32 _notUnique = 0;
+		uint32 _emptyLine = 0;
 
-		uint16 _emptyLine = 0;
+		String nonAlphabeticLines;
+		String exceedsSizeLines;
+		String sizeSmaller2CharLines;
+		String nonUniqueLines;
+		String emptyLines;
 
-
-
-#define CAPACITY_OF_LINES 300
-		MyString nonAlphabeticLines(new char[CAPACITY_OF_LINES], CAPACITY_OF_LINES);
-		MyString exceedsSizeLines(new char[CAPACITY_OF_LINES], CAPACITY_OF_LINES);
-		MyString sizeSmaller2CharLines(new char[CAPACITY_OF_LINES], CAPACITY_OF_LINES);
-		MyString nonUniqueLines(new char[CAPACITY_OF_LINES], CAPACITY_OF_LINES);
-		MyString emptyLines(new char[CAPACITY_OF_LINES], CAPACITY_OF_LINES);
-#undef CAPACITY_OF_LINES
-
-		uint16 lineLenght = 0;
-
-		auto findNextLine = [&](const char& line) {
-			uint16 i = 0;
-			while ((&line)[i] != '\n' && (&line)[i] != '\0') {
+		auto calculateLineLength = [](const char& line) {
+			uint32 i = 0;
+			while ((&line)[i] != '\r' && (&line)[i] != '\n' && (&line)[i] != '\0') {
 				i++;
 			}
-			lineLenght = i;
+			return i;
 		};
 
-		uint32 i = -1;
 		uint32 lineNumber = 1;
-		char temp[15];
-		do { // Read line by line
-			i++; // Increment
-			switch (AddNewVerb((&file)[i])) {
+		uint32 lineLength = 0;
+
+		for (uint64 i = 0; i < size; i++) {
+
+			lineLength = calculateLineLength(file[i]);
+			if (lineLength == 0)
+				continue;
+
+			switch (AddNewVerb(&file[i], lineLength)) {
 			case 1: // The verb Successfully added
 				_successfull++;
 				break;
 			case -1: // There is some charachter which is not alphabetic
 				_nonAlphabetic++;
-				nonAlphabeticLines.AddToEnd(*temp, IntToStr(*temp, lineNumber));
-				nonAlphabeticLines.AddToEnd(*",", 1);
+				util::IntToStr(nonAlphabeticLines, lineNumber);
+				nonAlphabeticLines += ',';
 				break;
 			case -2: // Character size exceeds VERB_CHAR_SIZE size
 				_charExceedsSize++;
-				exceedsSizeLines.AddToEnd(*temp, IntToStr(*temp, lineNumber));
-				exceedsSizeLines.AddToEnd(*",", 1);
+				util::IntToStr(exceedsSizeLines, lineNumber);
+				exceedsSizeLines += ',';
 				break;
 			case -3: // Character size smaller than 2 characters
 				_charSizeSmaller2++;
-				sizeSmaller2CharLines.AddToEnd(*temp, IntToStr(*temp, lineNumber));
-				sizeSmaller2CharLines.AddToEnd(*",", 1);
+				util::IntToStr(sizeSmaller2CharLines, lineNumber);
+				sizeSmaller2CharLines += ',';
 				break;
 			case -4: // The verb is already exist
 				_notUnique++;
-				nonUniqueLines.AddToEnd(*temp, IntToStr(*temp, lineNumber));
-				nonUniqueLines.AddToEnd(*",", 1);
+				util::IntToStr(nonUniqueLines, lineNumber);
+				nonUniqueLines += ',';
+				break;
+			case -5:
+				break;
+			case -6:
 				break;
 			case 2: // Empty Lines
 				_emptyLine++;
-				emptyLines.AddToEnd(*temp, IntToStr(*temp, lineNumber));
-				emptyLines.AddToEnd(*",", 1);
+				util::IntToStr(emptyLines, lineNumber);
+				emptyLines += ',';
 				break;
 			};
 
-			findNextLine((&file)[i]); // find the next line from file
-
-			i += lineLenght;
+			i += lineLength;
 			lineNumber++;
-		} while ((&file)[i] != '\0');
+		}
 
-		if (_successfull != 0)
+
+		if (_successfull != 0) {
 			Log::Info(_successfull) << " verbs added successfully.\n";
+		}
 		if (_nonAlphabetic != 0) {
-			Log::Error(_nonAlphabetic) << " verbs contains non-alphabetic characters.\n" <<
-				"These lines; " << nonAlphabeticLines.content << "\n";
+			Log::Error(_nonAlphabetic) << " verbs contain non-alphabetic characters.\n" <<
+				"These lines; " << nonAlphabeticLines.EndString().Chars() << "\n";
 		}
 		if (_charExceedsSize != 0) {
 			Log::Error(_charExceedsSize) << " verbs exceed " << VERB_CHAR_SIZE << " characters.\n" <<
-				"These lines; " << exceedsSizeLines.content << "\n";
+				"These lines; " << exceedsSizeLines.EndString().Chars() << "\n";
 		}
 		if (_charSizeSmaller2 != 0) {
 			Log::Error(_charSizeSmaller2) << " verbs are smaller than 2 characters.\n" <<
-				"These lines; " << sizeSmaller2CharLines.content << "\n";
+				"These lines; " << sizeSmaller2CharLines.EndString().Chars() << "\n";
 		}
 		if (_notUnique != 0) {
 			Log::Error(_notUnique) << " verbs are not unique.\n" <<
-				"These lines; " << nonUniqueLines.content << "\n";
+				"These lines; " << nonUniqueLines.EndString().Chars() << "\n";
 		}
 		if (_emptyLine != 0) {
 			Log::Warning(_emptyLine) << " empty lines.\n" <<
-				"These lines; " << emptyLines.content << "\n";
+				"These lines; " << emptyLines.EndString().Chars() << "\n";
 		}
 	}
 
-	int8 VerbHandler::AddNewVerb(const char& line) {
+	int8 VerbHandler::AddNewVerb(const char* line, const uint16& size) {
 		// return 2   : Empty line
-		// return +1  : The verb Successfully added
+		// return 1  : The verb added successfully
 		// return -1  : There is some charachter which is not alphabetic
 		// return -2  : Character size exceeds VERB_CHAR_SIZE size
 		// return -3  : Character size smaller than 2 characters
 		// return -4  : The verb is already exist
+		// return -5  : The verb doesn't contain V2 or V3 form
+		// return -6  : Wrong syntax
 
-		char temp[150];
-		int length = 0;
+		char temp[VERB_CHAR_SIZE];
+		uint8 verbLength = 0;
 		uint8 regularity_id = 1;
 		bool parenthesOpened = false;
 		bool checkUniqueness = true;
 		SuffixGroup exception_data(Undefined, Undefined, Undefined);
+		Verb* lastAddedVerb = nullptr;
+		char incorrect_verb[VERB_CHAR_SIZE + 1];
 
-		for (int i = 0; i < sizeof(temp); i++) {
-			char currentCh = ToLowerCase((&line)[i]);
+
+		auto dispatchVerb = [&]() { // Returns either -4 because of uniquness or 1 if succeed
+			if (checkUniqueness) { // Default value is true
+				if (FindVerb(temp, verbLength) == 0) // Checking Uniqueness
+					lastAddedVerb = &CreateNewVerb(temp, verbLength, exception_data);
+				else
+					return -4; // The base verb is already exist
+			}
+			else { // If user disabled this feature
+				lastAddedVerb = &CreateNewVerb(temp, verbLength, exception_data);
+				checkUniqueness = true; // activating Uniqueness true for the next word if exist
+			}
+
+			// Resetting the verb length
+			verbLength = 0;
+			// Resetting the suffix informations
+			exception_data.ing = Undefined;
+			exception_data.s = Undefined;
+			return 1; // The verb added successfully 
+		};
+
+		for (int i = 0; i < size; i++) {
+			char currentCh = util::ToLowerCase(line[i]);
 
 			if (currentCh != 0) { // When char is in a-Z
-				temp[length++] = currentCh;
+				if (verbLength < VERB_CHAR_SIZE) // Length control before adding the temp array
+					temp[verbLength++] = currentCh;
+				else
+					return -2; //Character size exceeds VERB_CHAR_SIZE size
 			}
-			else if ((&line)[i] == ' ' || (&line)[i] == '\t') // If char is blank space or new tab
+			else if (line[i] == ' ' || line[i] == '\t') { // If char is blank space or new tab
 				continue;
-			else if ((&line)[i] == '\n' || (&line)[i] == '\0' || (&line)[i] == '#') // when new line or terminal char 
-			{
-				if (length > 1) { // If the temp array is not empty
-					if (length > VERB_CHAR_SIZE) {
-						return -2;
-					}
-					if (regularity_id == 1) // the verb is regular
-					{
-						if (checkUniqueness) { // Default value is true
-							if (FindVerb(*temp, length) == 0) // Check Uniqueness
-								CreateNewVerb(*temp, length, exception_data);
-							else
-								return -4; // The base verb is already exist
-						}
-						else { // If user disabled this feature
-							CreateNewVerb(*temp, length, exception_data);
-						}
-					}
-					else { // Ending of the irregular verbs
-						exception_data.ed = IrregularVerb_V3;
-						Verb* verb_adress = &CreateNewVerb(*temp, length, exception_data);
-						CreateIrregularVerb(*verb_adress);
-					}
-				}
-				else if (length == 1) { // Verb cannot be one char
-					return -3;
-				}
-
+			}
+			else if (line[i] == '#') { // If the comment line
 				break;
 			}
-			else if ((&line)[i] == '-')  // some verbs can contain '-'
-				temp[length++] = (&line)[i];
-			else if ((&line)[i] == ',') { // irregular verb input
+			else if (line[i] == '-') {  // some verbs can contain '-'
+				if (verbLength == 0) { // the first character of verb cannot be hyphen
+					return -1; // There is some charachter which is not alphabetic
+				}
+				else if (verbLength < VERB_CHAR_SIZE) { // Length control before adding the temp array
+					temp[verbLength++] = line[i]; // Second char can be hyphen
+				}
+				else {
+					return -2; // Character size exceeds VERB_CHAR_SIZE size
+				}
+			}
+			else if (line[i] == ',') { // irregular verb input
 				// Length control
-				if (length > VERB_CHAR_SIZE) { // charachter size exceeds VERB_CHAR_SIZE size
-					return -2;
+				if (verbLength == 0) { // When there is no word in temp
+					util::MemCpy(incorrect_verb, temp, verbLength);
+					incorrect_verb[verbLength] = '\0';
+					Log::Warning("[WRONG SYNTAX]: The verb contains wrong comma(,) '") << incorrect_verb <<
+						"' please find and remove it!\n";
+					return -6; // Wrong syntax
 				}
-				else if (length == 0) { // When there is no word in temp
-					continue;
-				}
-				else if (length == 1) { // there can be no verb with one char
+				else if (verbLength == 1) { // there can be no verb with one char
 					return -3;
 				}
 
-
-				// If parathes opened in the back
+				// If parentheses opened in the back
 				if (parenthesOpened) {
-					Verb* verb_adress = nullptr;
-
-
-					if (regularity_id == 2) {
-						// Create new verb in index buffer THEN add irregular verb to the last collection
+					switch (regularity_id) {
+					case 2:
+						checkUniqueness = false;
 						exception_data.ed = IrregularVerb_V2;
-						verb_adress = &CreateNewVerb(*temp, length, exception_data);
-					}
-					else if (regularity_id == 3) {
-						// Create new verb in index buffer THEN add irregular verb to the last collection
-						exception_data.ed = IrregularVerb_V3;
-						verb_adress = &CreateNewVerb(*temp, length, exception_data);
-					}
-					else if (regularity_id == 1) {
-						char warning[VERB_CHAR_SIZE];
-						CopyData(*warning, *temp, length);
-						warning[length] = '\0';
-						Log::Warning("Base verb '") << warning <<
-							"' cannot start with parentheses! Please find and remove it!\n";
-						return -1;
-					}
-
-					CreateIrregularVerb(*verb_adress);
-					length = 0;
-				}
-				else { // Parentheses closed correctly
-					Verb* verb_adress = nullptr;
-
-					if (regularity_id == 1) { // the verb is V1
-						// Create new verb in index buffer THEN create irregular verb collection
-						if (FindVerb(*temp, length) == 0) {// If base form is unique
-							exception_data.ed = IrregularVerb;
-							verb_adress = &CreateNewVerb(*temp, length, exception_data);
-						}
-						else
-							return -4; // The base verb is already exist
-
-						exception_data.s = Undefined;
-						exception_data.ing = Undefined;
-					}
-					else if (regularity_id == 2) {
-						// Create new verb in index buffer THEN add irregular verb to the last collection
-						exception_data.ed = IrregularVerb_V2;
-						verb_adress = &CreateNewVerb(*temp, length, exception_data);
-					}
-					else if (regularity_id == 3) { // When you forgot the closing the parantheses at the V3
-						exception_data.ed = IrregularVerb_V3;
-						verb_adress = &CreateNewVerb(*temp, length, exception_data);
-						char warning[VERB_CHAR_SIZE];
-						CopyData(*warning, *temp, length);
-						warning[length] = '\0';
-						Log::Warning("At the end of this verb '") << warning <<
-							"' ends with comma(',') please find and remove it!\n";
+						dispatchVerb();
 						break;
+					case 3:
+						checkUniqueness = false;
+						exception_data.ed = IrregularVerb_V3;
+						dispatchVerb();
+						break;
+					case 1:
+						util::MemCpy(incorrect_verb, temp, verbLength);
+						incorrect_verb[verbLength] = '\0';
+						Log::Error("[WRONG SYNTAX]: The verb cannot start with parentheses: '")
+							<< incorrect_verb << "' please find and remove it!\n";
+						return -6; // Wrong syntax
+					default:
+						util::MemCpy(incorrect_verb, temp, verbLength);
+						incorrect_verb[verbLength] = '\0';
+						Log::Error("[WRONG SYNTAX]: The irregular verb contains more than 3 time tenses: '")
+							<< incorrect_verb << "' please find and remove it!\n";
+						return -6; // Wrong syntax
 					}
 
-					CreateIrregularVerb(*verb_adress);
-					length = 0;
+					// Adding last verb to irregular verbs 
+					CreateIrregularVerb(*lastAddedVerb);
+				}
+				else { // Parentheses closed
+					switch (regularity_id)
+					{
+					case 1: // the verb is V1
+						exception_data.ed = IrregularVerb;
+						if (dispatchVerb() == -4)  // If the verb already in the list
+							return -4; // The verb is already exist
+						break;
+					case 2: // the verb is V2
+						checkUniqueness = false;
+						exception_data.ed = IrregularVerb_V2;
+						dispatchVerb();
+						break;
+					case 3: // the verb is V3
+						util::MemCpy(incorrect_verb, temp, verbLength);
+						incorrect_verb[verbLength] = '\0';
+						Log::Warning("[WRONG SYNTAX]: At the end of this verb '") << incorrect_verb <<
+							"' ends with comma(',') please find and remove it!\n";
+						goto end_of_the_loop; // Break the loop
+					default:
+						util::MemCpy(incorrect_verb, temp, verbLength);
+						incorrect_verb[verbLength] = '\0';
+						Log::Error("[WRONG SYNTAX]: The irregular verb contains more than 3 time tenses: '")
+							<< incorrect_verb << "' please find and remove it!\n";
+						return -6; // Wrong syntax
+					}
+
+					// Increasing regularity id so that next verb's type can be changed
 					regularity_id += 1;
+					// Adding last verb to irregular verbs 
+					CreateIrregularVerb(*lastAddedVerb);
 				}
 			}
-			else if ((&line)[i] == '(') {
+			else if (line[i] == '(') {
 				parenthesOpened = true;
 			}
-			else if ((&line)[i] == ')') { // Add last verb 
+			else if (line[i] == ')') { // Add last verb 
 				parenthesOpened = false;
-
-				// Length control
-				if (length > VERB_CHAR_SIZE) { // charachter size exceeds VERB_CHAR_SIZE size
-					return -2;
-				}
-				else if (length == 0) { // When there is no word in temp
-					continue;
-				}
-				else if (length == 1) { // there can be no verb with one char
-					return -3; // One char exception
-				}
-
-				// Add verbs according to their regularity
-				if (regularity_id == 2) {
-					// Create new verb in index buffer THEN add irregular verb to the last collection
-					exception_data.ed = IrregularVerb_V2;
-					Verb* verb_adress = &CreateNewVerb(*temp, length, exception_data);
-					CreateIrregularVerb(*verb_adress);
-				}
-				else if (regularity_id == 3) {
-					// Create new verb in index buffer THEN add irregular verb to the last collection
-					exception_data.ed = IrregularVerb_V3;
-					Verb* verb_adress = &CreateNewVerb(*temp, length, exception_data);
-					CreateIrregularVerb(*verb_adress);
-					break;
-				}
-
-				length = 0;
-				regularity_id += 1;
 			}
-			else if ((&line)[i] == '/') {
-				if (DoesContain(*"I0", (&line)[i + 1])) { // I0: ing except none
+			else if (line[i] == '/') { // User defined commands in dictionary
+				if (util::DoesContain("I0", &line[i + 1])) { // I0: ing except none
 					exception_data.ing = None;
 					i += 2;
 				}
-				else if (DoesContain(*"S0", (&line)[i + 1])) { // S0 : S except none
+				else if (util::DoesContain("S0", &line[i + 1])) { // S0 : S except none
 					exception_data.s = None;
 					i += 2;
 				}
-				else if (DoesContain(*"DL", (&line)[i + 1])) { // DL : Double last char
+				else if (util::DoesContain("DL", &line[i + 1])) { // DL : Double last char
 					exception_data.ing = Suffix_X_ing;
 					exception_data.ed = Suffix_X_ed;
 					i += 2;
 				}
-				else if (DoesContain(*"U0", (&line)[i + 1])) { // U0 : don't check uniqueness
+				else if (util::DoesContain("U0", &line[i + 1])) { // U0 : don't check uniqueness
 					checkUniqueness = false;
 					i += 2;
 				}
@@ -357,14 +341,42 @@ namespace verb {
 					return -1; // There is some character which is not alphabetic
 				}
 			}
-			else
+			else {
 				return -1; // There is some character which is not alphabetic
-		}
+			}
 
-		if (length > 0)
-			return 1; // Successfly added
-		else
+		}
+	end_of_the_loop:
+
+		if (verbLength > 1) { // If the temp array contains the verb at least 3 chars
+			if (regularity_id == 1) { // The verb was regular
+				// returns -4; The base verb is already exist
+				// returns 1; The verb added successfully 
+				return dispatchVerb();
+			}
+			else if (regularity_id == 3) { // V3 form
+				checkUniqueness = false; // Don't check uniqueness for V3
+				exception_data.ed = IrregularVerb_V3;
+				// returns -4; The base verb is already exist
+				// returns 1; The verb added successfully 
+				if (dispatchVerb() == 1) { // If the verb adds successfully
+					CreateIrregularVerb(*lastAddedVerb); // Add the verb into irregulars
+					return 1;
+				}
+				else {
+					return -4;
+				}
+			}
+			else {
+				return -5; // The verb doesn't contain V2 or V3 form
+			}
+		}
+		else if (verbLength == 1) {
+			return -3;  // Character size smaller than 2 characters
+		}
+		else {
 			return 2; // Line was empty
+		}
 	}
 
 
@@ -378,7 +390,7 @@ namespace verb {
 			}
 			else { // IF space is not enough
 				if (irrVerbCollection.capacity > 0) { // If current capacity bigger than 0
-					int newSize = irrVerbCollection.capacity * SIZE_INCREASE_COEFFICIENT;
+					int newSize = irrVerbCollection.capacity * VERB_SIZE_INCREASE_COEFFICIENT;
 					// Hold old pointer
 					IrrVerb* p_old_data = irrVerbCollection.verbs;
 					// Create new heap space
@@ -386,7 +398,7 @@ namespace verb {
 					// Update new capacity
 					irrVerbCollection.capacity = newSize;
 					// Copy Old data to new one
-					CopyData(*irrVerbCollection.verbs, *p_old_data, irrVerbCollection.amount);
+					util::MemCpy(irrVerbCollection.verbs, p_old_data, irrVerbCollection.amount);
 					// Free old space
 					delete[] p_old_data;
 				}
@@ -419,14 +431,14 @@ namespace verb {
 		}
 	}
 
-	Verb& VerbHandler::CreateNewVerb(const char& verb_chars, const int& str_lenght, const SuffixGroup& exception_p) {
-		int row = (&verb_chars)[0] - 97; // 97 means 'a' in ASCII code
+	Verb& VerbHandler::CreateNewVerb(const char* verb_chars, const int& str_lenght, const SuffixGroup& exception_p) {
+		int row = verb_chars[0] - 97; // 97 means 'a' in ASCII code
 		int col;
 
-		if ((&verb_chars)[1] == '-')
+		if (verb_chars[1] == '-')
 			col = 26; // 26 reserved for -
 		else
-			col = (&verb_chars)[1] - 97; // 97 means 'a' in ASCII code
+			col = verb_chars[1] - 97; // 97 means 'a' in ASCII code
 
 
 		// Check buffer size
@@ -436,7 +448,7 @@ namespace verb {
 		else { // There is no empyt slot to put new word
 			if (buffer[row * VERB_COL + col].verbCapacity > 0) { // If current capacity bigger than 0
 				// Calculating coefficient for new verb heap size
-				int newSize = buffer[row * VERB_COL + col].verbCapacity * SIZE_INCREASE_COEFFICIENT;
+				int newSize = buffer[row * VERB_COL + col].verbCapacity * VERB_SIZE_INCREASE_COEFFICIENT;
 				// Hold old pointer
 				Verb* p_old_data = buffer[row * VERB_COL + col].verbs;
 				// Create new verbs array
@@ -474,7 +486,7 @@ namespace verb {
 		}
 
 		// Copy chars to buffer verb and increase the size of verb
-		CopyData(*buffer[row * VERB_COL + col].verbs[buffer[row * VERB_COL + col].verbAmount].chars, verb_chars, str_lenght);
+		util::MemCpy(buffer[row * VERB_COL + col].verbs[buffer[row * VERB_COL + col].verbAmount].chars, verb_chars, str_lenght);
 		buffer[row * VERB_COL + col].verbs[buffer[row * VERB_COL + col].verbAmount].length = str_lenght;
 
 		// Check Exceptions... -S -ING -ED
@@ -541,7 +553,7 @@ namespace verb {
 	}
 
 #define VERB_RESULT_ARRAY_SIZE 5
-	int8 VerbHandler::ParseVerb(const char& raw_chars, char& out_result, bool parse_flag) const {
+	int8 VerbHandler::ParseVerb(const String& raw_string, String& out_result, bool parse_flag) const {
 		// return 2   : Empty line
 		// return -1  : No verb found.
 		// return +1  : The verb Successfully found.
@@ -554,18 +566,18 @@ namespace verb {
 		uint8 lenght = 0;
 
 		// Make all chars lowercase and get rid of spaces
-		for (int i = 0; (&raw_chars)[i] != '\0'; i++) {
-			char currentCh = ToLowerCase((&raw_chars)[i]);
+		for (int i = 0; i < raw_string.Length(); i++) {
+			char currentCh = util::ToLowerCase(raw_string[i]);
 
 			if (currentCh != 0) // If the char is alphabetic
 				verb_chars[lenght++] = currentCh;
-			else if ((&raw_chars)[i] == ' ' || (&raw_chars)[i] == '\t')
+			else if (raw_string[i] == ' ' || raw_string[i] == '\t')
 				continue;
-			else if ((&raw_chars)[i] == '-') { // If the charachter is hyphen
+			else if (raw_string[i] == '-') { // If the charachter is hyphen
 				if (i == 0)
 					return -3; // First character cannot be hyphen
 				else
-					verb_chars[lenght++] = (&raw_chars)[i]; // Add hy
+					verb_chars[lenght++] = raw_string[i]; // Add hy
 			}
 			else
 				return -2; // There is some character which is not alphabetic
@@ -574,7 +586,7 @@ namespace verb {
 		// Size control
 		if (lenght < 2)
 			return -4; // Character size smaller than 2 characters
-		else if (lenght > VERB_CHAR_SIZE)
+		else if (lenght > VERB_CHAR_SIZE + 3)
 			return -5; // Character size exceeds VERB_CHAR_SIZE size
 
 		// Create verb holder and assing nullptr
@@ -583,7 +595,7 @@ namespace verb {
 			foundVerbs[i] = nullptr;
 
 		// Search if the verb in native form
-		int8 resultVerbsAmount = FindVerb(*verb_chars, lenght, true, foundVerbs);
+		int8 resultVerbsAmount = FindVerb(verb_chars, lenght, true, foundVerbs);
 		if (resultVerbsAmount > 0) {
 			// Turning verb data into str
 			VerbsToStr(foundVerbs, VERB_RESULT_ARRAY_SIZE, out_result);
@@ -591,35 +603,32 @@ namespace verb {
 		}
 
 		if (parse_flag) {
-			int lastIndex = 0;
-
 			// Search if the verb has -ed
 			{
-				lastIndex += CopyStr((&out_result)[lastIndex], *"\x1b[95m[Infectional Verb (-ed)]: \x1b[0m");
+				out_result += "\x1b[95m[Infectional Verb (-ed)]: \x1b[0m";
 				bool is_ed = true;
-				switch (ED_Parser(*verb_chars, lenght, foundVerbs))
+				switch (ED_Parser(verb_chars, lenght, foundVerbs))
 				{
 				case -1:
-					lastIndex = 0;
 					is_ed = false;
 					break;
 				case None:
-					lastIndex += CopyStr((&out_result)[lastIndex], *(foundVerbs[0]->chars), foundVerbs[0]->length);
-					lastIndex += CopyStr((&out_result)[lastIndex], *" + ed\n");
+					out_result.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_result += " + ed\n";
 					break;
 				case Suffix_0y_ied:
-					lastIndex += CopyStr((&out_result)[lastIndex], *(foundVerbs[0]->chars), foundVerbs[0]->length);
-					lastIndex += CopyStr((&out_result)[lastIndex], *"(-y) + ied\n");
+					out_result.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_result += "(-y) + ied\n";
 					break;
 				case Suffix_d:
-					lastIndex += CopyStr((&out_result)[lastIndex], *(foundVerbs[0]->chars), foundVerbs[0]->length);
-					lastIndex += CopyStr((&out_result)[lastIndex], *" + d\n");
+					out_result.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_result += " + d\n";
 					break;
 				case Suffix_X_ed:
-					lastIndex += CopyStr((&out_result)[lastIndex], *(foundVerbs[0]->chars), foundVerbs[0]->length);
-					lastIndex += CopyStr((&out_result)[lastIndex], *" + (");
-					(&out_result)[lastIndex++] = verb_chars[lenght - 3];
-					lastIndex += CopyStr((&out_result)[lastIndex], *")ed\n");
+					out_result.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_result += " + (";
+					out_result += verb_chars[lenght - 3];
+					out_result += ")ed\n";
 					break;
 				default:
 					Log::Error("ED parser returns a value that doesn't exist in switch.");
@@ -628,41 +637,43 @@ namespace verb {
 
 				if (is_ed) { // If we found the verb in -ed tags
 					// Turning verb data into str
-					VerbsToStr(foundVerbs, VERB_RESULT_ARRAY_SIZE, (&out_result)[lastIndex]);
+					VerbsToStr(foundVerbs, VERB_RESULT_ARRAY_SIZE, out_result);
 					return 1;
+				}
+				else {
+					out_result.RemoveLast(35); // Remove last 35 chars
 				}
 			}
 
 			// Search if the verb has -ing
 			{
-				lastIndex += CopyStr((&out_result)[lastIndex], *"\x1b[95m[Infectional Verb (-ing)]: \x1b[0m");
+				out_result += "\x1b[95m[Infectional Verb (-ing)]: \x1b[0m";
 				bool is_ing = true;
 
 				// None, EndsWith_w_x_y, EndsWith_Ce, EndsWith_ie, EndsWith_XVC, DoubleLastChar 
 
-				switch (ING_Parser(*verb_chars, lenght, foundVerbs))
+				switch (ING_Parser(verb_chars, lenght, foundVerbs))
 				{
 				case -1:
-					lastIndex = 0;
 					is_ing = false;
 					break;
 				case None:
-					lastIndex += CopyStr((&out_result)[lastIndex], *(foundVerbs[0]->chars), foundVerbs[0]->length);
-					lastIndex += CopyStr((&out_result)[lastIndex], *" + ing\n");
+					out_result.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_result += " + ing\n";
 					break;
 				case Suffix_0e_ing:
-					lastIndex += CopyStr((&out_result)[lastIndex], *(foundVerbs[0]->chars), foundVerbs[0]->length);
-					lastIndex += CopyStr((&out_result)[lastIndex], *"(-e) + ing\n");
+					out_result.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_result += "(-e) + ing\n";
 					break;
 				case Suffix_0ie_ying:
-					lastIndex += CopyStr((&out_result)[lastIndex], *(foundVerbs[0]->chars), foundVerbs[0]->length);
-					lastIndex += CopyStr((&out_result)[lastIndex], *"(-ie) + ying\n");
+					out_result.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_result += "(-ie) + ying\n";
 					break;
 				case Suffix_X_ing:
-					lastIndex += CopyStr((&out_result)[lastIndex], *(foundVerbs[0]->chars), foundVerbs[0]->length);
-					lastIndex += CopyStr((&out_result)[lastIndex], *" + (");
-					(&out_result)[lastIndex++] = verb_chars[lenght - 4];
-					lastIndex += CopyStr((&out_result)[lastIndex], *")ing\n");
+					out_result.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_result += " + (";
+					out_result += verb_chars[lenght - 4];
+					out_result += ")ing\n";
 					break;
 				default:
 					Log::Error("ING parser returns a value that doesn't exist in switch.");
@@ -671,41 +682,43 @@ namespace verb {
 
 				if (is_ing) { // If we found the verb in -ed tags
 					// Turning verb data into str
-					VerbsToStr(foundVerbs, VERB_RESULT_ARRAY_SIZE, (&out_result)[lastIndex]);
+					VerbsToStr(foundVerbs, VERB_RESULT_ARRAY_SIZE, out_result);
 					return 1;
+				}
+				else {
+					out_result.RemoveLast(36); // Remove last 36 chars
 				}
 			}
 
 			// Search if the verb has -s
 			{
-				lastIndex += CopyStr((&out_result)[lastIndex], *"\x1b[95m[Infectional Verb (-s)]: \x1b[0m");
+				out_result += "\x1b[95m[Infectional Verb (-s)]: \x1b[0m";
 				bool is_es = true;
 
-				switch (S_Parser(*verb_chars, lenght, foundVerbs))
+				switch (S_Parser(verb_chars, lenght, foundVerbs))
 				{
 				case -1:
-					lastIndex = 0;
 					is_es = false;
 					break;
 				case None:
-					lastIndex += CopyStr((&out_result)[lastIndex], *(foundVerbs[0]->chars), foundVerbs[0]->length);
-					lastIndex += CopyStr((&out_result)[lastIndex], *" + s\n");
+					out_result.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_result += " + s\n";
 					break;
 				case Suffix_es:
-					lastIndex += CopyStr((&out_result)[lastIndex], *(foundVerbs[0]->chars), foundVerbs[0]->length);
-					lastIndex += CopyStr((&out_result)[lastIndex], *" + es\n");
+					out_result.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_result += " + es\n";
 					break;
 				case Suffix_ses:
-					lastIndex += CopyStr((&out_result)[lastIndex], *(foundVerbs[0]->chars), foundVerbs[0]->length);
-					lastIndex += CopyStr((&out_result)[lastIndex], *" + ses\n");
+					out_result.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_result += " + ses\n";
 					break;
 				case Suffix_zes:
-					lastIndex += CopyStr((&out_result)[lastIndex], *(foundVerbs[0]->chars), foundVerbs[0]->length);
-					lastIndex += CopyStr((&out_result)[lastIndex], *" + zes\n");
+					out_result.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_result += " + zes\n";
 					break;
 				case Suffix_0y_ies:
-					lastIndex += CopyStr((&out_result)[lastIndex], *(foundVerbs[0]->chars), foundVerbs[0]->length);
-					lastIndex += CopyStr((&out_result)[lastIndex], *"(-y) + ies\n");
+					out_result.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_result += "(-y) + ies\n";
 					break;
 				default:
 					Log::Error("S parser returns a value that doesn't exist in switch");
@@ -714,8 +727,11 @@ namespace verb {
 
 				if (is_es) { // If we found the verb in -ed tags
 					// Turning verb data into str
-					VerbsToStr(foundVerbs, VERB_RESULT_ARRAY_SIZE, (&out_result)[lastIndex]);
+					VerbsToStr(foundVerbs, VERB_RESULT_ARRAY_SIZE, out_result);
 					return 1;
+				}
+				else {
+					out_result.RemoveLast(34); // Remove last 34 chars
 				}
 			}
 
@@ -725,7 +741,7 @@ namespace verb {
 	}
 
 #pragma region Suffix Parser
-	int16 VerbHandler::ED_Parser(const char& verb, const uint8& lenght, Verb** out_verbs) const {
+	int16 VerbHandler::ED_Parser(const char* verb, const uint8& lenght, Verb** out_verbs) const {
 		// return  -1: verb couldn't find
 		// return  X: verb found and with exception
 
@@ -736,7 +752,7 @@ namespace verb {
 
 		int8 result = 0;
 
-		if ((&verb)[lenght - 1] == 'd') { // when the char is -d
+		if (verb[lenght - 1] == 'd') { // when the char is -d
 			// If the input ends with d
 			exceptions.ed = Suffix_d; // EndsWith_e
 			result = SearchVerb(verb, lenght - 1, out_verbs, exceptions);
@@ -744,28 +760,28 @@ namespace verb {
 				return Suffix_d;
 
 			// If the input ends with -ed
-			if ((&verb)[lenght - 2] == 'e') { // when the last 2 chars is -ed
+			if (verb[lenght - 2] == 'e') { // when the last 2 chars is -ed
 				exceptions.ed = None;
 				result = SearchVerb(verb, lenght - 2, out_verbs, exceptions);
 
 				if (result > 0)  // If verbs ends with None
 					return None;
 
-				if (lenght > 2 && (&verb)[lenght - 3] == 'i') {
+				if (lenght > 2 && verb[lenght - 3] == 'i') {
 					char tempVerb[VERB_CHAR_SIZE]; // Creating a temporary space for verb 
-					CopyData(*tempVerb, verb, lenght - 3); // copying charachters excluding last 3
+					util::MemCpy(tempVerb, verb, lenght - 3); // copying charachters excluding last 3
 					tempVerb[lenght - 3] = 'y'; // adding y to the last char of the verb 
 
 					exceptions.ed = Suffix_0y_ied; //EndsWith_Cy
-					result = SearchVerb(*tempVerb, lenght - 2, out_verbs, exceptions);
+					result = SearchVerb(tempVerb, lenght - 2, out_verbs, exceptions);
 
 					if (result > 0)  // If verbs ends with  Cy
 						return Suffix_0y_ied;
 				}
-				else if (lenght > 5 && !IsVowel((&verb)[lenght - 3])) {
+				else if (lenght > 5 && !util::IsVowel(verb[lenght - 3])) {
 					// verb lenght has to be bigger than 5 the 3rd to last has to be consonant
 
-					if ((&verb)[lenght - 3] == (&verb)[lenght - 4]) { // If the 3rd to last and 4th chars are same
+					if (verb[lenght - 3] == verb[lenght - 4]) { // If the 3rd to last and 4th chars are same
 						exceptions.ed = Suffix_X_ed;
 						result = SearchVerb(verb, lenght - 3, out_verbs, exceptions);
 						if (result > 0)  // If verbs ends with consonants + Vovel + Consonant
@@ -778,7 +794,7 @@ namespace verb {
 		return -1;
 	}
 
-	int16 VerbHandler::ING_Parser(const char& verb, const uint8& lenght, Verb** out_verbs) const {
+	int16 VerbHandler::ING_Parser(const char* verb, const uint8& lenght, Verb** out_verbs) const {
 		// None, EndsWith_w_x_y, EndsWith_Ce, EndsWith_ie, EndsWith_XVC, DoubleLastChar 
 		// -ing,	-ing,		 -(-e)ing,		-ying,			-xxing,		-xxing
 
@@ -787,7 +803,7 @@ namespace verb {
 
 		if (lenght > 4) { // the lengh has to be min 5 chars
 			// If the input str ends with -ing
-			if ((&verb)[lenght - 3] == 'i' && (&verb)[lenght - 2] == 'n' && (&verb)[lenght - 1] == 'g') {
+			if (verb[lenght - 3] == 'i' && verb[lenght - 2] == 'n' && verb[lenght - 1] == 'g') {
 				char tempVerb[VERB_CHAR_SIZE]; // Creating a temporary space for verb 
 
 				exceptions.ing = None;
@@ -795,20 +811,20 @@ namespace verb {
 				if (result > 0) // If verbs ends with none
 					return None;
 
-				if (!IsVowel((&verb)[lenght - 4])) { // If the 4th to last char is Consonant
+				if (!util::IsVowel(verb[lenght - 4])) { // If the 4th to last char is Consonant
 
 					{ // If the original verb ends with -e
-						CopyData(*tempVerb, verb, lenght - 3); // copying charachters excluding last 3
+						util::MemCpy(tempVerb, verb, lenght - 3); // copying charachters excluding last 3
 						tempVerb[lenght - 3] = 'e'; // adding e to the last char of the verb 
 
 						exceptions.ing = Suffix_0e_ing; // EndsWith_Ce
-						result = SearchVerb(*tempVerb, lenght - 2, out_verbs, exceptions);
+						result = SearchVerb(tempVerb, lenght - 2, out_verbs, exceptions);
 
 						if (result > 0)  // If verbs ends with Cy
 							return Suffix_0e_ing;
 					}
 
-					if (lenght > 6 && (&verb)[lenght - 4] == (&verb)[lenght - 5]) { // If the input str ends with double last char
+					if (lenght > 6 && verb[lenght - 4] == verb[lenght - 5]) { // If the input str ends with double last char
 						exceptions.ing = Suffix_X_ing;
 						result = SearchVerb(verb, lenght - 4, out_verbs, exceptions);
 						if (result > 0)  // If verbs ends with consonants + Vovel + Consonant
@@ -816,12 +832,12 @@ namespace verb {
 					}
 				}
 
-				if ((&verb)[lenght - 4] == 'y') { // If the input text ends with -ying
-					CopyData(*tempVerb, verb, lenght - 4); // copying charachters excluding last 4
-					CopyStr(tempVerb[lenght - 4], *"ie", 2);// copying ie to the end
+				if (verb[lenght - 4] == 'y') { // If the input text ends with -ying
+					util::MemCpy(tempVerb, verb, lenght - 4); // copying charachters excluding last 4
+					util::MemCpy(&tempVerb[lenght - 4], "ie", 2);// copying ie to the end
 
 					exceptions.ing = Suffix_0ie_ying; // EndsWith_ie
-					result = SearchVerb(*tempVerb, lenght - 2, out_verbs, exceptions);
+					result = SearchVerb(tempVerb, lenght - 2, out_verbs, exceptions);
 
 					if (result > 0)  // If verbs ends with  Cy
 						return Suffix_0ie_ying;
@@ -832,7 +848,7 @@ namespace verb {
 		return -1;
 	}
 
-	int16 VerbHandler::S_Parser(const char& verb, const uint8& lenght, Verb** out_verbs) const {
+	int16 VerbHandler::S_Parser(const char* verb, const uint8& lenght, Verb** out_verbs) const {
 		// None, EndsWith_Cy, EndsWith_ss, EndsWith_zz, EndsWith_ch, EndsWith_sh, EndsWith_s, EndsWith_z, EndsWith_x, EndsWith_o
 		// -s		-(-y)ies	-es			   -es			-es			-es			 -ses		 -zes	,	 -es    ,	-es
 
@@ -840,7 +856,7 @@ namespace verb {
 		int8 result = 0;
 
 		if (lenght > 2) { // the input text has to be at least 3 chars
-			if ((&verb)[lenght - 1] == 's') { // input str ends with -s
+			if (verb[lenght - 1] == 's') { // input str ends with -s
 				{
 					exceptions.s = None;
 					result = SearchVerb(verb, lenght - 1, out_verbs, exceptions);
@@ -848,7 +864,7 @@ namespace verb {
 					if (result > 0)
 						return None;
 				}
-				if ((&verb)[lenght - 2] == 'e') { // input str ends with -es
+				if (verb[lenght - 2] == 'e') { // input str ends with -es
 					{
 						exceptions.s = Suffix_es;
 						result = SearchVerb(verb, lenght - 2, out_verbs, exceptions);
@@ -856,24 +872,24 @@ namespace verb {
 						if (result > 0)
 							return Suffix_es;
 					}
-					if ((&verb)[lenght - 3] == 'i') { // input str ends with -ies
+					if (verb[lenght - 3] == 'i') { // input str ends with -ies
 						char tempVerb[VERB_CHAR_SIZE]; // Creating a temporary space for verb
-						CopyData(*tempVerb, verb, lenght - 3); // copying charachters excluding last 3
+						util::MemCpy(tempVerb, verb, lenght - 3); // copying charachters excluding last 3
 						tempVerb[lenght - 3] = 'y'; // adding e to the last char of the verb 
 						exceptions.s = Suffix_0y_ies; // setting the suffix type
 
-						result = SearchVerb(*tempVerb, lenght - 2, out_verbs, exceptions);
+						result = SearchVerb(tempVerb, lenght - 2, out_verbs, exceptions);
 						if (result > 0)
 							return Suffix_0y_ies;
 					}
 					if (lenght > 4) {
-						if ((&verb)[lenght - 3] == 's' && (&verb)[lenght - 4] == 's') { // input str ends with -sses
+						if (verb[lenght - 3] == 's' && verb[lenght - 4] == 's') { // input str ends with -sses
 							exceptions.s = Suffix_ses;
 							result = SearchVerb(verb, lenght - 3, out_verbs, exceptions);
 							if (result > 0)
 								return Suffix_ses;
 						}
-						else if ((&verb)[lenght - 3] == 'z' && (&verb)[lenght - 4] == 'z') { // input str ends with -zzes
+						else if (verb[lenght - 3] == 'z' && verb[lenght - 4] == 'z') { // input str ends with -zzes
 							exceptions.s = Suffix_zes;
 							result = SearchVerb(verb, lenght - 3, out_verbs, exceptions);
 							if (result > 0)
@@ -889,7 +905,7 @@ namespace verb {
 
 #pragma endregion
 
-	int8 VerbHandler::SearchVerb(const char& verb_chars, const int& length, Verb**& out_verbs, SuffixGroup& exception_p) const {
+	int8 VerbHandler::SearchVerb(const char* verb_chars, const int& length, Verb**& out_verbs, SuffixGroup& exception_p) const {
 		// return -1 : no identifer
 		// return 0  : no verb found
 		// return 1  : 1 verb found
@@ -903,12 +919,12 @@ namespace verb {
 			return 0;
 		}
 
-		int row = (&verb_chars)[0] - 97; // 97 means 'a' in ASCII code
+		int row = verb_chars[0] - 97; // 97 means 'a' in ASCII code
 		int col;
-		if ((&verb_chars)[1] == '-')
+		if (verb_chars[1] == '-')
 			col = 26; // 26 reserved for -
 		else
-			col = (&verb_chars)[1] - 97; // 97 means 'a' in ASCII code
+			col = verb_chars[1] - 97; // 97 means 'a' in ASCII code
 
 
 		bool (*ed_type)(const SuffixGroup&, Verb&) = [](const SuffixGroup& ee, Verb& verb) {
@@ -945,7 +961,7 @@ namespace verb {
 				// If they have same type
 				if (IsSameType(exception_p, buffer[row * VERB_COL + col].verbs[i])) {
 					// If they have same content
-					if (IsSameStr(*buffer[row * VERB_COL + col].verbs[i].chars, verb_chars, length)) {
+					if (util::IsSameArray(buffer[row * VERB_COL + col].verbs[i].chars, verb_chars, length)) {
 						if (lastId < VERB_RESULT_ARRAY_SIZE)
 						{
 							out_verbs[lastId] = &buffer[row * VERB_COL + col].verbs[i];
@@ -962,7 +978,7 @@ namespace verb {
 		return lastId;
 	}
 
-	int8 VerbHandler::FindVerb(const char& verb_chars, const int& length, bool hold_verb, Verb** out_verbs) const {
+	int8 VerbHandler::FindVerb(const char* verb_chars, const int& length, bool hold_verb, Verb** out_verbs) const {
 		// return -1 : verb is smaller than 2 chars
 		// return 0  : no verb found
 		// return 1  : 1 verb found
@@ -975,18 +991,18 @@ namespace verb {
 		if (length < 2) // Verb cannot be one character
 			return -1;
 
-		int row = (&verb_chars)[0] - 97; // 97 means 'a' in ASCII code
+		int row = verb_chars[0] - 97; // 97 means 'a' in ASCII code
 
 		int col;
 
-		if ((&verb_chars)[1] == '-')
+		if (verb_chars[1] == '-')
 			col = 26; // 26 reserved for -
 		else
-			col = (&verb_chars)[1] - 97; // 97 means 'a' in ASCII code
+			col = verb_chars[1] - 97; // 97 means 'a' in ASCII code
 
 		for (int i = 0; i < buffer[row * VERB_COL + col].verbAmount; i++) { // Get all verbs from buffer
 			if (buffer[row * VERB_COL + col].verbs[i].length == length) {
-				if (IsSameStr(*buffer[row * VERB_COL + col].verbs[i].chars, verb_chars, length)) {
+				if (util::IsSameArray(buffer[row * VERB_COL + col].verbs[i].chars, verb_chars, length)) {
 					if (hold_verb) {
 						if (lastId < VERB_RESULT_ARRAY_SIZE)
 						{
@@ -1010,63 +1026,59 @@ namespace verb {
 
 #undef VERB_RESULT_ARRAY_SIZE
 
-	uint32 VerbHandler::VerbToStr(const Verb& verb, char& out_string) const {
+	void VerbHandler::VerbToStr(const Verb& verb, String& out_string) const {
 		if (&verb == nullptr) // If the object is empty return 0
-			return 0;
+			return;
 
-		uint32 lastIndex = 0;
-		CopyData(out_string, *verb.chars, verb.length);
-		lastIndex += verb.length;
+		out_string.Append(verb.chars, verb.length);
 
-		lastIndex += CopyStr((&out_string)[lastIndex], *"\t[Sfx_ED]: ");
-		lastIndex += ExceptionToStr(0, verb.suffixes.ed, (&out_string)[lastIndex]);
+		out_string += "\t[Sfx_ED]: ";
+		ExceptionToStr(0, verb.suffixes.ed, out_string);
 
-		lastIndex += CopyStr((&out_string)[lastIndex], *", [Sfx_S]: ");
-		lastIndex += ExceptionToStr(1, verb.suffixes.s, (&out_string)[lastIndex]);
+		out_string += ", [Sfx_S]: ";
+		ExceptionToStr(1, verb.suffixes.s, out_string);
 
-		lastIndex += CopyStr((&out_string)[lastIndex], *", [Sfx_ING]: ");
-		lastIndex += ExceptionToStr(2, verb.suffixes.ing, (&out_string)[lastIndex]);
-		return lastIndex;
+		out_string += ", [Sfx_ING]: ";
+		ExceptionToStr(2, verb.suffixes.ing, out_string);
 	}
 
-	uint32 VerbHandler::VerbsToStr(Verb* const* verbs, uint16 verb_size, char& out_string) const {
+	void VerbHandler::VerbsToStr(Verb* const* verbs, uint16 verb_size, String& out_string) const {
 		if (verbs[0] == nullptr) // If the object is empty return 0
-			return 0;
+			return;
 
 		uint32 lastIndex = 0;
 
 		for (int i = 0; i < verb_size; i++) {
 			if (verbs[i] != nullptr) {
-				lastIndex += IntToStr((&out_string)[lastIndex], i + 1);
-				lastIndex += CopyStr((&out_string)[lastIndex], *". ");
-				lastIndex += VerbToStr(*verbs[i], (&out_string)[lastIndex]);
-				(&out_string)[lastIndex++] = '\n';
+				util::IntToStr(out_string, i + 1);
+				out_string += ". ";
+				VerbToStr(*verbs[i], out_string);
+				out_string += '\n';
 			}
 			else {
 				break;
 			}
 		}
-		(&out_string)[lastIndex] = '\0';
 
-		return lastIndex;
+		out_string.EndString();
 	}
 
-	void VerbHandler::GetVerbsWithIndex(const char& index_couple, char& out_string) {
-		int row = (&index_couple)[0] - 97; // 97 means 'a' in ASCII code
+	void VerbHandler::GetVerbsWithIndex(const char* index_couple, String& out_string) {
+		int row = index_couple[0] - 97; // 97 means 'a' in ASCII code
 		int col;
 
-		if ((&index_couple)[1] == '-')
+		if (index_couple[1] == '-')
 			col = 26; // 26 reserved for -
 		else
-			col = (&index_couple)[1] - 97; // 97 means 'a' in ASCII code
+			col = index_couple[1] - 97; // 97 means 'a' in ASCII code
 
 
-		uint32 lastIndex = 0;
 		for (int i = 0; i < buffer[row * VERB_COL + col].verbAmount; i++) {
-			lastIndex += VerbToStr(buffer[row * VERB_COL + col].verbs[i], (&out_string)[lastIndex]);
+			VerbToStr(buffer[row * VERB_COL + col].verbs[i], out_string);
+			out_string += '\n';
 		}
 
-		(&out_string)[lastIndex] = '\0';
+		out_string.EndString();
 	}
 
 	int8 VerbHandler::UpdateIrrVerbAdress(Verb& new_address, const Verb& old_adress) {
@@ -1104,52 +1116,42 @@ namespace verb {
 		return -1; // Verb couln't found in irregular verbs
 	}
 
-	uint16 VerbHandler::GetAllIrregularVerbs(char& out_string) const {
-		int lastCharIndex = 0;
+	uint16 VerbHandler::GetAllIrregularVerbs(String& out_string) const {
 
 		for (int i = 0; i < irrVerbCollection.amount; i++) {
-			// Pase form copy
-			lastCharIndex += CopyStr((&out_string)[lastCharIndex], *"[Base]:");
-			CopyData((&out_string)[lastCharIndex], *irrVerbCollection.verbs[i].baseForm->chars,
-				irrVerbCollection.verbs[i].baseForm->length);
-			lastCharIndex += irrVerbCollection.verbs[i].baseForm->length;
+			// Base form copy
+			out_string += "[Base]:";
+			out_string.Append(irrVerbCollection.verbs[i].baseForm->chars, irrVerbCollection.verbs[i].baseForm->length);
 
 			// Past simple forms copy
 			if (irrVerbCollection.verbs[i].pastSimple != nullptr) {
-				lastCharIndex += CopyStr((&out_string)[lastCharIndex], *"\t[PastSimple]:");
-
-				CopyData((&out_string)[lastCharIndex], *irrVerbCollection.verbs[i].pastSimple->chars,
-					irrVerbCollection.verbs[i].pastSimple->length);
-				lastCharIndex += irrVerbCollection.verbs[i].pastSimple->length;
+				out_string += "\t[PastSimple]:";
+				out_string.Append(irrVerbCollection.verbs[i].pastSimple->chars, irrVerbCollection.verbs[i].pastSimple->length);
 
 				if (irrVerbCollection.verbs[i].pastSimple_2 != nullptr) {
-					lastCharIndex += CopyStr((&out_string)[lastCharIndex], *", ");
-					CopyData((&out_string)[lastCharIndex], *irrVerbCollection.verbs[i].pastSimple_2->chars,
+					out_string += ", ";
+					out_string.Append(irrVerbCollection.verbs[i].pastSimple_2->chars,
 						irrVerbCollection.verbs[i].pastSimple_2->length);
-					lastCharIndex += irrVerbCollection.verbs[i].pastSimple_2->length;
 				}
 			}
 
 			// Past Participle forms copy
 			if (irrVerbCollection.verbs[i].pastParticiple != nullptr) {
-				lastCharIndex += CopyStr((&out_string)[lastCharIndex], *"\t[PastParticiple]:");
-
-				CopyData((&out_string)[lastCharIndex], *irrVerbCollection.verbs[i].pastParticiple->chars,
+				out_string += "\t[PastParticiple]:";
+				out_string.Append(irrVerbCollection.verbs[i].pastParticiple->chars,
 					irrVerbCollection.verbs[i].pastParticiple->length);
-				lastCharIndex += irrVerbCollection.verbs[i].pastParticiple->length;
 
 				if (irrVerbCollection.verbs[i].pastParticiple_2 != nullptr) {
-					lastCharIndex += CopyStr((&out_string)[lastCharIndex], *", ");
-					CopyData((&out_string)[lastCharIndex], *irrVerbCollection.verbs[i].pastParticiple_2->chars,
+					out_string += ", ";
+					out_string.Append(irrVerbCollection.verbs[i].pastParticiple_2->chars,
 						irrVerbCollection.verbs[i].pastParticiple_2->length);
-					lastCharIndex += irrVerbCollection.verbs[i].pastParticiple_2->length;
 				}
 			}
 
-			(&out_string)[lastCharIndex++] = '\n';
+			out_string += '\n';
 		}
-
-		(&out_string)[--lastCharIndex] = '\0';
+		out_string--; // Remove last char
+		out_string.EndString(); // Place \0 char
 		return irrVerbCollection.amount;
 	}
 
@@ -1160,7 +1162,7 @@ namespace verb {
 		// None, EndsWith_Cy, EndsWith_ss, EndsWith_zz, EndsWith_ch, EndsWith_sh, EndsWith_s, EndsWith_z, EndsWith_x, EndsWith_o
 
 		// Check if second to last character is consonant and last char is y
-		if (!IsVowel(verb.chars[verb.length - 2]) && verb.chars[verb.length - 1] == 'y') {
+		if (!util::IsVowel(verb.chars[verb.length - 2]) && verb.chars[verb.length - 1] == 'y') {
 			verb.suffixes.s = Suffix_0y_ies; // EndsWith_Cy
 			return;
 		}
@@ -1210,7 +1212,7 @@ namespace verb {
 			return;
 		}
 		else if (verb.chars[verb.length - 1] == 'e') {
-			if (verb.length > 2 && !IsVowel(verb.chars[verb.length - 2])) { // Verb ends with consonant + vowel
+			if (verb.length > 2 && !util::IsVowel(verb.chars[verb.length - 2])) { // Verb ends with consonant + vowel
 				verb.suffixes.ing = Suffix_0e_ing; // EndsWith_Ce
 				return;
 			}
@@ -1219,12 +1221,12 @@ namespace verb {
 				return;
 			}
 		}
-		else if (!IsVowel(verb.chars[verb.length - 1])) {
-			if (IsVowel(verb.chars[verb.length - 2])) {// Ends with Vowel + Constant
+		else if (!util::IsVowel(verb.chars[verb.length - 1])) {
+			if (util::IsVowel(verb.chars[verb.length - 2])) {// Ends with Vowel + Constant
 				if (verb.length > 2) { // Length control
 					bool isAllConsonant = true;
 					for (int i = 0; i < verb.length - 2; i++) {
-						if (IsVowel(verb.chars[verb.length - 3 - i])) {
+						if (util::IsVowel(verb.chars[verb.length - 3 - i])) {
 							isAllConsonant = false;
 							break;
 						}
@@ -1249,7 +1251,7 @@ namespace verb {
 			return;
 		}
 		else if (verb.chars[verb.length - 1] == 'y') {
-			if (!IsVowel(verb.chars[verb.length - 2])) // Consonant + y
+			if (!util::IsVowel(verb.chars[verb.length - 2])) // Consonant + y
 				verb.suffixes.ed = Suffix_0y_ied; //  EndsWith_Cy
 			else
 				verb.suffixes.ed = None; // EndsWith_w_x_y
@@ -1259,14 +1261,14 @@ namespace verb {
 			verb.suffixes.ed = Suffix_d; // EndsWith_e
 			return;
 		}
-		else if (!IsVowel(verb.chars[verb.length - 1])) {
-			if (IsVowel(verb.chars[verb.length - 2])) {// Ends with Vowel + Constant
+		else if (!util::IsVowel(verb.chars[verb.length - 1])) {
+			if (util::IsVowel(verb.chars[verb.length - 2])) {// Ends with Vowel + Constant
 				if (verb.length < 3) // Length control
 					return;
 
 				bool isAllConsonant = true;
 				for (int i = 0; i < verb.length - 2; i++) { // check to first if contains other vowel char 
-					if (IsVowel(verb.chars[verb.length - 3 - i])) {
+					if (util::IsVowel(verb.chars[verb.length - 3 - i])) {
 						isAllConsonant = false;
 						break;
 					}
@@ -1283,7 +1285,8 @@ namespace verb {
 
 #pragma endregion
 
-	uint32 VerbHandler::ExceptionToStr(const int8 type, const Suffix_t& ex_type, char& out_str) const { // 0: ED, 1: S, 2:ING
+	void VerbHandler::ExceptionToStr(const int8 type, const Suffix_t& ex_type,
+		String& out_string) const { // 0: ED, 1: S, 2:ING
 
 		switch (type)
 		{
@@ -1291,63 +1294,81 @@ namespace verb {
 			switch (ex_type)
 			{
 			case None:
-				return CopyStr(out_str, *"-ed");
+				out_string += "-ed";
+				return;
 			case IrregularVerb:
-				return CopyStr(out_str, *"Irr verb V1");
+				out_string += "Irr verb V1";
+				return;
 			case IrregularVerb_V2:
-				return CopyStr(out_str, *"Irr verb V2");
+				out_string += "Irr verb V2";
+				return;
 			case IrregularVerb_V3:
-				return CopyStr(out_str, *"Irr verb V3");
+				out_string += "Irr verb V3";
+				return;
 			case Suffix_d:
-				return CopyStr(out_str, *"-d");
+				out_string += "-d";
+				return;
 			case Suffix_0y_ied:
-				return CopyStr(out_str, *"(-y) + ied");
+				out_string += "(-y) + ied";
+				return;
 			case Suffix_X_ed:
-				return CopyStr(out_str, *"(X) + ed");
+				out_string += "(X) + ed";
+				return;
 			default:
-				return CopyStr(out_str, *"Incompatible!");
+				out_string += "Incompatible!";
+				return;
 			}
-			break;
+			return;
 
 		case 1: // S type
 			switch (ex_type)
 			{
 			case None:
-				return CopyStr(out_str, *"-s");
+				out_string += "-s";
+				return;
 			case Suffix_es:
-				return CopyStr(out_str, *"-es");
+				out_string += "-es";
+				return;
 			case Suffix_zes:
-				return CopyStr(out_str, *"-zes");
+				out_string += "-zes";
+				return;
 			case Suffix_ses:
-				return CopyStr(out_str, *"-ses");
+				out_string += "-ses";
+				return;
 			case Suffix_0y_ies:
-				return CopyStr(out_str, *"(-y) + ies");
+				out_string += "(-y) + ies";
+				return;
 			default:
-				return CopyStr(out_str, *"Incompatible!");
+				out_string += "Incompatible!";
+				return;
 			}
-			break;
+			return;
 
 		case 2: // Ing type
 			switch (ex_type)
 			{
 			case None:
-				return CopyStr(out_str, *"-ing");
+				out_string += "-ing";
+				return;
 			case Suffix_0e_ing:
-				return CopyStr(out_str, *"(-e) + ing");
+				out_string += "(-e) + ing";
+				return;
 			case Suffix_0ie_ying:
-				return CopyStr(out_str, *"(-ie) + ying");
+				out_string += "(-ie) + ying";
+				return;
 			case Suffix_X_ing:
-				return CopyStr(out_str, *"(X) + ing");;
+				out_string += "(X) + ing";
+				return;
 			default:
-				return CopyStr(out_str, *"Incompatible!");
+				out_string += "Incompatible!";
+				return;
 			}
-			break;
+			return;
 
 		default:
-			return CopyStr(out_str, *"Incorrect Type!");
+			out_string += "Incorrect Type!";
+			return;
 		}
-
-		return 0;
 
 		/* Old types
 		switch (ex_type)

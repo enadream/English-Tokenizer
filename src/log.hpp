@@ -5,7 +5,7 @@
 #include <windows.h>
 
 // User libs
-#include "datatypes.hpp"
+#include "misc/data_types.hpp"
 
 class Log {
 public:

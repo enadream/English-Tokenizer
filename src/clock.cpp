@@ -7,11 +7,11 @@ Clock::Clock() {
 Clock::~Clock() {
 }
 
-void Clock::StartTime() {
+void Clock::StartTimer() {
 	start_time = std::chrono::high_resolution_clock::now();
 }
 
-void Clock::EndTime() {
+void Clock::EndTimer() {
 	end_time = std::chrono::high_resolution_clock::now();
 }
 

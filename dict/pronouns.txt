@@ -1,0 +1,76 @@
+# Personal Pronouns
+I 
+you
+he
+she
+it
+we
+you
+they
+# Demonstrative Pronouns
+this
+these
+# Possessive Pronouns
+mine
+yours
+his
+hers
+its
+ours
+yours
+theirs
+# Interrogative Pronouns
+who
+whom
+what
+which
+whose
+# Reflexive Pronouns
+myself
+yourself
+himself
+herself
+itself
+ourselves
+yourselves
+themselves
+# Reciprocal Pronouns
+# each other
+# one another
+# Indefinite Pronouns
+another
+anybody
+anyone
+anything
+each
+either
+enough
+everybody
+everyone
+everything
+less
+little
+much
+neither
+nobody
+no-one
+nothing
+one
+other
+somebody
+someone
+something
+both
+few
+fewer
+many
+others
+several
+they
+all
+any
+more
+most
+none
+some
+such

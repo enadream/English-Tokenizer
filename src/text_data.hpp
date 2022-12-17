@@ -3,7 +3,7 @@
 
 // Macros
 // IOP TEXTS
-#ifdef IO_OPERATION_HPP
+#ifdef ECLI_HPP
 
 #define HELP_ERROR_COMMAND_NFOUND "The command you have entered could not be identified. \
 If you don't know what to do, you can consider to use 'help' command or 'exit' simply.\n"
@@ -11,14 +11,16 @@ If you don't know what to do, you can consider to use 'help' command or 'exit' s
 #define HELP_PRONOUN_IDS "-p1: I\n-p2: You\n-p3: We\n-p4: \
 They\n-p5: He\n-p6: She\n-p7: It\n"
 
-#define HELP_MAIN "\texit : Use this command to terminate program.\n\
-\tclear : Use this command to clear console.\n\
-\tread : Use this command to read data from disk.\n\
-\tparse : Use this command to parse verbs, nouns, etc.\n\
-\tfind : Use this command to find a verb, a noun etc.\n\
-\tprint : Use this command to print some data.\n\
+#define HELP_MAIN "\tclear : Use this command to clear console.\n\
+\tdelete : Use this command to delete buffers or data\n\
+\texit: Use this command to exit the program\n\
 \thelp : Use this command to get information about commands.\n\
-For the more information about spesific command or usage type \"/help /read\" i.e\n"
+\tparse : Use this command to parse verbs, nouns, etc.\n\
+\tprint : Use this command to print some data.\n\
+\tread : Use this command to read data from disk.\n\
+\ttokenize : Use this command to tokenize a string.\n\
+\t-command : Use this parameter to see parsed command text.\n\
+For the more information about spesific command or usage type \"help read\". i.e\n"
 
 #define HELP_TIME_TENSES "\t-t1: Past Simple Tense\n\
 \t-t2: Past Continuous Tense\n\
