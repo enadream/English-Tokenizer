@@ -2,7 +2,7 @@
 #include "verb.hpp"
 #include "log.hpp"
 #include "misc/util.hpp"
-#include "text_data.hpp"
+#include "misc/text_data.hpp"
 
 #define VERB_SIZE 32  // 32 default
 #define VERB_SIZE_HYPHEN 4
@@ -554,9 +554,9 @@ namespace verb {
 
 #define VERB_RESULT_ARRAY_SIZE 5
 	int8 VerbHandler::ParseVerb(const String& raw_string, String& out_result, bool parse_flag) const {
+		// return +1  : The verb Successfully found.
 		// return 2   : Empty line
 		// return -1  : No verb found.
-		// return +1  : The verb Successfully found.
 		// return -2  : There is some characters which is not alphabetic
 		// return -3  : First character cannot be hyphen
 		// return -4  : Character size less than 2 characters

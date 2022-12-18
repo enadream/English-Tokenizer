@@ -9,7 +9,8 @@
 #define SENTENCE_AMOUNT 100    // 1600 byte
 #define MIN_TOKEN_AMOUNT 16
 
-namespace tokenizer {
+namespace tkn {
+
 	class Sentence // 16 byte
 	{
 	private:
@@ -40,11 +41,13 @@ namespace tokenizer {
 
 	class Tokenizer {
 	private:
-		util::Array<Sentence, SENTENCE_AMOUNT> sentences; // 16 * SENTENCE_AMOUNT byte
+
+	public:
+		util::Array<Sentence, SENTENCE_AMOUNT + 1> sentences; // 16 * SENTENCE_AMOUNT byte
 
 	public:
 		Tokenizer() = default;
-		int8 ParseClause(const String& sentence);
+		int8 ParseString(const String& sentence);
 		int8 GetAllSentences(String& out_string) const;
 		void FreeAll();
 

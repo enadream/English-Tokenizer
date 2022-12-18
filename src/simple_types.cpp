@@ -195,7 +195,7 @@ namespace basic {
 	}
 
 	int32 BasicType::ParseWord(const char* raw_word, const uint8& length, String& out_string) {
-		// return  0  : word found
+		// return  1  : word found
 		// return -1  : The word has not found
 		// return -2  : Character size exceeds WORD_CHAR_SIZE size
 		// return -3  : Character size smaller than 1 characters. Empty.
@@ -240,7 +240,7 @@ namespace basic {
 			out_string += '\n';
 			out_string.EndString();
 
-			return 0;
+			return 1;
 		}
 		else
 			return -1;

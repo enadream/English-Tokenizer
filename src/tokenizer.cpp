@@ -4,7 +4,7 @@
 #define TOKEN_INCR_COEF 2
 #define SENTENCE_DEBUG 1
 
-namespace tokenizer {
+namespace tkn {
 
 #pragma region Sentence
 
@@ -125,7 +125,7 @@ namespace tokenizer {
 
 
 #pragma region Tokenizer
-	int8 Tokenizer::ParseClause(const String& string) {
+	int8 Tokenizer::ParseString(const String& string) {
 #define DEFAULT_TOKEN_SIZE 16
 
 		uint32 lastSentenceIndex = 0;
@@ -208,7 +208,7 @@ namespace tokenizer {
 		for (uint32 i = 0; sentences[i].Tokens() != nullptr; i++) { // Copy each sentence
 			string += '[';
 			util::IntToStr(string, i + 1);
-			string += "]:";
+			string += "]: ";
 
 			for (int j = 0; j < sentences[i].Amount(); j++) // Copy each token
 			{
