@@ -6,7 +6,8 @@
 
 #define WORD_CHAR_SIZE 23
 
-
+#define WORD_ROW 26
+#define WORD_COLUMN 27
 
 namespace basic {
 
@@ -16,21 +17,49 @@ namespace basic {
 		uint8 length = 0;
 	};
 
-	class BasicType {
+	class UnindexedList {
 	private:
 		Word* words = nullptr;
 		uint32 amount = 0;
 		uint32 capacity = 0;
-	public:
-		BasicType();
-		~BasicType();
 
+	private: // Functions
 		void IncreaseSpace();
+
+	public:
+		UnindexedList();
+		~UnindexedList();
+
 		void FreeAll();
 		int8 AddWord(const char* word_chars, const uint32& length);
 		void MultipleAdder(const char* file, const uint64& line_length, const char* type);
 		int32 FindWord(const char* word_chars, const uint8& length);
-		int32 ParseWord(const char* raw_word, const uint8& length, String& out_string);
+		int32 ParseWord(const String& raw_string, String& out_string, const bool write_result);
+	};
+
+	struct WordList { // 16 byte
+		Word* words;
+		uint16 capacity;
+		uint16 amount;
+		char indicator[2];
+	};
+
+	class IndexedList {
+	private:
+		WordList* wordLists;
+
+	private: // Functions
+		Word* CreateWord(const char* word_chars, const uint32& str_length);
+
+	public:
+		IndexedList();
+		~IndexedList();
+
+		void FreeAll();
+		int8 AddWord(const char* word_chars, const uint32& length);
+		void MultipleAdder(const char* file, const uint64& line_length, const char* type, bool print_suc);
+		Word* FindWord(const char* word_chars, const uint8& str_length);
+		int32 ParseWord(const String& raw_string, String& out_string, const bool write_result);
 	};
 }
 #endif // !CLOSED_CLASSES_HPP

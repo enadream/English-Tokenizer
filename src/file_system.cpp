@@ -28,12 +28,17 @@ int8 FileSystem::ReadFromDisk(Buffer& buffer, const char* file_dir) {
 	return 0;
 }
 
-int8 FileSystem::WriteToDisk(Buffer& buffer, const char& file_dir, const uint64& length) {
-	FILE* file_ptr;
-	file_ptr = fopen(&file_dir, "w");
+int8 FileSystem::WriteToDisk(Buffer& buffer, const char* file_dir, const uint64& size) {
+	std::ofstream file(file_dir, std::ios::out);
 
-	fwrite(buffer.data, sizeof(file_ptr[0]), length, file_ptr);
-	fclose(file_ptr);
+	if (!file.is_open()) {
+		Log::Error("An error occurred while opening the file \"") << file_dir << "\"\n";
+		return -1;
+	}
 
-	return 1;
+	file.write(buffer.As<char>(), size);
+	file.close();
+
+	Log::Info("The file has written successfully.\n");
+	return 0;
 }

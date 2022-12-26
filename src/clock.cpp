@@ -1,5 +1,5 @@
 #include "clock.hpp"
-#include "utility.hpp"
+#include "misc/util.hpp"
 
 Clock::Clock() {
 }
@@ -16,11 +16,11 @@ void Clock::EndTimer() {
 }
 
 long long Clock::GetDuration(const char& type) { // s:seconds, ms:mili sec, us: micro sec, ns: nano sec,
-	if (DoesContain(*"ms", type)) // Milliseconds
+	if (util::DoesContain("ms", &type)) // Milliseconds
 		duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-	else if (DoesContain(*"us", type)) // Microseconds
+	else if (util::DoesContain("us", &type)) // Microseconds
 		duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
-	else if (DoesContain(*"ns", type)) // Nanoseconds
+	else if (util::DoesContain("ns", &type)) // Nanoseconds
 		duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time);
 	else // seconds
 		duration = std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time);

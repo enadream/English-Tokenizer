@@ -32,37 +32,36 @@ namespace handle {
 	class MainHandler {
 	private: // variables
 		noun::NounHandler noun;
-		basic::BasicType pronoun;
-		basic::BasicType adv;
-		basic::BasicType adj;
-		basic::BasicType prepos;
-		basic::BasicType conj;
-		basic::BasicType interj;
+		basic::UnindexedList pronoun;
+		basic::IndexedList adv;
+		basic::IndexedList adj;
+		basic::UnindexedList prepos;
+		basic::UnindexedList conj;
+		basic::UnindexedList interj;
 
 	public: // variables
 		tkn::Tokenizer tokenize;
 		verb::VerbHandler verb;
-		std::vector<Word> words;
 
 	private: // functions
-		void ParseNoun(const char* raw_word, const uint8 length, String* out_string, int32* result);
-		void ParseVerb(const String* raw_word, String* out_string, int32* result);
-		void ParsePronoun(const char* raw_word, const uint8 length, String* out_string, int32* result);
-		void ParseAdv(const char* raw_word, const uint8 length, String* out_string, int32* result);
-		void ParseAdj(const char* raw_word, const uint8 length, String* out_string, int32* result);
-		void ParsePrepos(const char* raw_word, const uint8 length, String* out_string, int32* result);
-		void ParseConj(const char* raw_word, const uint8 length, String* out_string, int32* result);
-		void ParseInterj(const char* raw_word, const uint8 length, String* out_string, int32* result);
+		void ParseNoun(const String* raw_word, int32* result, String* out_string, const bool write_result);
+		void ParseVerb(const String* raw_word, int32* result, String* out_string, const bool write_result);
+		void ParsePronoun(const String* raw_word, int32* result, String* out_string, const bool write_result);
+		void ParseAdv(const String* raw_word, int32* result, String* out_string, const bool write_result);
+		void ParseAdj(const String* raw_word, int32* result, String* out_string, const bool write_result);
+		void ParsePrepos(const String* raw_word, int32* result, String* out_string, const bool write_result);
+		void ParseConj(const String* raw_word, int32* result, String* out_string, const bool write_result);
+		void ParseInterj(const String* raw_word, int32* result, String* out_string, const bool write_result);
 
 	public: // functions
 		MainHandler() = default;
-		void Read(const WordType type, const char* data, const uint64& length);
+		void Read(const WordType type, const char* data, const uint64& length, bool print_suc);
 		void Delete(const WordType type);
-		void Parse(const String& str, const int32 word_id = -1);
-		void Parse(const WordType type, const String& str);
+		void ParseMultithread(const String& raw_word, const bool print_result, std::vector<Word>* words);
+		void ParseWithType(const WordType type, const String& str);
 		void ParseSentence(const String& str);
 		void PrintResult(const WordType type, const int32& result, const String& str);
-		void WordsToStr(String& out_str);
+		void WordsToStr(std::vector<Word>& words, String& out_str);
 	};
 }
 

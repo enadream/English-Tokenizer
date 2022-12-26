@@ -8,7 +8,7 @@
 class FileSystem {
 public:
 	 static int8 ReadFromDisk(Buffer& buffer, const char* file_dir);
-	 static int8 WriteToDisk(Buffer& buffer, const char& file_dir, const uint64& length);
+	 static int8 WriteToDisk(Buffer& buffer, const char* file_dir, const uint64& size);
 };
 
 #endif // !FILE_SYSTEM_HPP

@@ -7,8 +7,7 @@
 #include "misc/util.hpp"
 
 namespace handle {
-
-	void MainHandler::Read(const WordType type, const char* data, const uint64& length) {
+	void MainHandler::Read(const WordType type, const char* data, const uint64& length, bool print_suc) {
 		switch (type)
 		{
 		case Noun:
@@ -21,10 +20,10 @@ namespace handle {
 			pronoun.MultipleAdder(data, length, "pronouns");
 			return;
 		case Adverb:
-			adv.MultipleAdder(data, length, "adverbs");
+			adv.MultipleAdder(data, length, "adverbs", print_suc);
 			return;
 		case Adjective:
-			adj.MultipleAdder(data, length, "adjectives");
+			adj.MultipleAdder(data, length, "adjectives", print_suc);
 			return;
 		case Preposition:
 			prepos.MultipleAdder(data, length, "prepositions");
@@ -72,42 +71,42 @@ namespace handle {
 		}
 	}
 
-	void MainHandler::Parse(const WordType type, const String& str) { // Parse with known type
-		int32 result = -1;
+	void MainHandler::ParseWithType(const WordType type, const String& str) { // Parse with known type
+		int32 result;
 		String out_str;
 
 		switch (type)
 		{
 		case Noun:
-			ParseNoun(str.Chars(), str.Length(), &out_str, &result);
+			result = noun.ParseNoun(str, out_str, true);
 			PrintResult(Noun, result, out_str);
 			return;
 		case Verb:
-			ParseVerb(&str, &out_str, &result);
+			result = verb.ParseVerb(str, out_str, true);
 			PrintResult(Verb, result, out_str);
 			return;
 		case Pronoun:
-			ParsePronoun(str.Chars(), str.Length(), &out_str, &result);
+			result = pronoun.ParseWord(str, out_str, true);
 			PrintResult(Pronoun, result, out_str);
 			return;
 		case Adverb:
-			ParseAdv(str.Chars(), str.Length(), &out_str, &result);
+			result = adv.ParseWord(str, out_str, true);
 			PrintResult(Adverb, result, out_str);
 			return;
 		case Adjective:
-			ParseAdj(str.Chars(), str.Length(), &out_str, &result);
+			result = adj.ParseWord(str, out_str, true);
 			PrintResult(Adjective, result, out_str);
 			return;
 		case Preposition:
-			ParsePrepos(str.Chars(), str.Length(), &out_str, &result);
+			result = prepos.ParseWord(str, out_str, true);
 			PrintResult(Preposition, result, out_str);
 			return;
 		case Conjunction:
-			ParseConj(str.Chars(), str.Length(), &out_str, &result);
+			result = conj.ParseWord(str, out_str, true);
 			PrintResult(Conjunction, result, out_str);
 			return;
 		case Interjection:
-			ParseInterj(str.Chars(), str.Length(), &out_str, &result);
+			result = interj.ParseWord(str, out_str, true);
 			PrintResult(Interjection, result, out_str);
 			return;
 		default:
@@ -115,20 +114,19 @@ namespace handle {
 		}
 	}
 
-	void MainHandler::Parse(const String& str, const int32 word_id) { // Multithread parser
-
-		int32 result[8];
-		String out_str[8];
+	void MainHandler::ParseMultithread(const String& raw_word, const bool print_result, std::vector<Word>* words) { // Multithread parser
+		util::Array<int32, 8> result;
+		String outStrs[result.GetSize()];
 
 		// Start Threads
-		std::thread noun_thread(&MainHandler::ParseNoun, this, str.Chars(), str.Length(), &out_str[0], &result[0]);
-		std::thread verb_thread(&MainHandler::ParseVerb, this, &str, &out_str[1], &result[1]);
-		std::thread pronoun_thread(&MainHandler::ParsePronoun, this, str.Chars(), str.Length(), &out_str[2], &result[2]);
-		std::thread adv_thread(&MainHandler::ParseAdv, this, str.Chars(), str.Length(), &out_str[3], &result[3]);
-		std::thread adj_thread(&MainHandler::ParseAdj, this, str.Chars(), str.Length(), &out_str[4], &result[4]);
-		std::thread prepos_thred(&MainHandler::ParsePrepos, this, str.Chars(), str.Length(), &out_str[5], &result[5]);
-		std::thread conj_thread(&MainHandler::ParseConj, this, str.Chars(), str.Length(), &out_str[6], &result[6]);
-		std::thread interj_thread(&MainHandler::ParseInterj, this, str.Chars(), str.Length(), &out_str[7], &result[7]);
+		std::thread noun_thread(&MainHandler::ParseNoun, this, &raw_word, &result[0], &outStrs[0], print_result);
+		std::thread verb_thread(&MainHandler::ParseVerb, this, &raw_word, &result[1], &outStrs[1], print_result);
+		std::thread pronoun_thread(&MainHandler::ParsePronoun, this, &raw_word, &result[2], &outStrs[2], print_result);
+		std::thread adv_thread(&MainHandler::ParseAdv, this, &raw_word, &result[3], &outStrs[3], print_result);
+		std::thread adj_thread(&MainHandler::ParseAdj, this, &raw_word, &result[4], &outStrs[4], print_result);
+		std::thread prepos_thred(&MainHandler::ParsePrepos, this, &raw_word, &result[5], &outStrs[5], print_result);
+		std::thread conj_thread(&MainHandler::ParseConj, this, &raw_word, &result[6], &outStrs[6], print_result);
+		std::thread interj_thread(&MainHandler::ParseInterj, this, &raw_word, &result[7], &outStrs[7], print_result);
 
 		// Wait for completion of threads
 		noun_thread.join();
@@ -141,7 +139,7 @@ namespace handle {
 		interj_thread.join();
 
 		// Printing Part
-		if (word_id == -1) {
+		if (print_result) {
 			int found = 0;
 			for (int32 i = 0; i < 8; i++) { // Print results
 				if (result[i] == 1) {
@@ -149,24 +147,23 @@ namespace handle {
 					SetColor(14);
 					std::cout << "\n[RESULT " << found << "]: \n";
 					SetColor(7);
-
-					PrintResult((WordType)(i + 1), result[i], out_str[i]);
+					PrintResult((WordType)(i + 1), result[i], outStrs[i]);
 				}
 			}
 			if (!found) {
 				Log::Warning("No result has found.\n");
 			}
 		}
-		else {
+		else { // Fill the words type
 			bool found = false;
 			for (int32 i = 0; i < 8; i++) { // Print results
 				if (result[i] == 1) {
-					words.at(word_id).type.push_back((WordType)(i + 1));
+					words->back().type.push_back((WordType)(i + 1));
 					found = true;
 				}
 			}
 			if (!found) {
-				words.at(word_id).type.push_back(Undefined);
+				words->back().type.push_back(Undefined);
 			}
 		}
 
@@ -175,6 +172,7 @@ namespace handle {
 	void MainHandler::ParseSentence(const String& str) {
 		String out_str;
 
+		std::vector<Word> words;
 		// Tokenize input
 		tokenize.ParseString(str);
 		// Parse each sentence 
@@ -184,50 +182,54 @@ namespace handle {
 			for (uint32 j = 0; j < tokenize.sentences[i].Amount(); j++) {
 				// Copy adress of word to words
 				words.push_back(Word());
-				words.at(j).data = &tokenize.sentences[i][j];
+				words.back().data = &tokenize.sentences[i][j];
 				// Parse token
-				Parse(tokenize.sentences[i][j], j);
+				ParseMultithread(tokenize.sentences[i][j], false, &words);
 			}
 			// Words to string
 			out_str += "\n\x1b[38;5;198m[SENTENCE ";
 			util::IntToStr(out_str, i + 1);
 			out_str += "]: \n\x1b[0m";
-			WordsToStr(out_str);
+			WordsToStr(words, out_str);
+
+			// Reduce parse
+
 			// Delete words in sentence
 			words.clear();
 		}
 
+		// Print result
 		std::cout << out_str.EndString().Chars();
 		// Free tokens
 		tokenize.FreeAll();
 	}
 
-	void MainHandler::ParseNoun(const char* raw_word, const uint8 length, String* out_string, int32* result) {
-		*result = noun.ParseNoun(raw_word, length, *out_string);
+	void MainHandler::ParseNoun(const String* raw_word, int32* result, String* out_string, const bool write_result) {
+		*result = noun.ParseNoun(*raw_word, *out_string, write_result);
 	}
-	void MainHandler::ParseVerb(const String* raw_word, String* out_string, int32* result) {
-		*result = verb.ParseVerb(*raw_word, *out_string, true);
+	void MainHandler::ParseVerb(const String* raw_word, int32* result, String* out_string, const bool write_result) {
+		*result = verb.ParseVerb(*raw_word, *out_string, write_result);
 	}
-	void MainHandler::ParsePronoun(const char* raw_word, const uint8 length, String* out_string, int32* result) {
-		*result = pronoun.ParseWord(raw_word, length, *out_string);
+	void MainHandler::ParsePronoun(const String* raw_word, int32* result, String* out_string, const bool write_result) {
+		*result = pronoun.ParseWord(*raw_word, *out_string, write_result);
 	}
-	void MainHandler::ParseAdv(const char* raw_word, const uint8 length, String* out_string, int32* result) {
-		*result = adv.ParseWord(raw_word, length, *out_string);
+	void MainHandler::ParseAdv(const String* raw_word, int32* result, String* out_string, const bool write_result) {
+		*result = adv.ParseWord(*raw_word, *out_string, write_result);
 	}
-	void MainHandler::ParseAdj(const char* raw_word, const uint8 length, String* out_string, int32* result) {
-		*result = adj.ParseWord(raw_word, length, *out_string);
+	void MainHandler::ParseAdj(const String* raw_word, int32* result, String* out_string, const bool write_result) {
+		*result = adj.ParseWord(*raw_word, *out_string, write_result);
 	}
-	void MainHandler::ParsePrepos(const char* raw_word, const uint8 length, String* out_string, int32* result) {
-		*result = prepos.ParseWord(raw_word, length, *out_string);
+	void MainHandler::ParsePrepos(const String* raw_word, int32* result, String* out_string, const bool write_result) {
+		*result = prepos.ParseWord(*raw_word, *out_string, write_result);
 	}
-	void MainHandler::ParseConj(const char* raw_word, const uint8 length, String* out_string, int32* result) {
-		*result = conj.ParseWord(raw_word, length, *out_string);
+	void MainHandler::ParseConj(const String* raw_word, int32* result, String* out_string, const bool write_result) {
+		*result = conj.ParseWord(*raw_word, *out_string, write_result);
 	}
-	void MainHandler::ParseInterj(const char* raw_word, const uint8 length, String* out_string, int32* result) {
-		*result = interj.ParseWord(raw_word, length, *out_string);
+	void MainHandler::ParseInterj(const String* raw_word, int32* result, String* out_string, const bool write_result) {
+		*result = interj.ParseWord(*raw_word, *out_string, write_result);
 	}
 
-	void MainHandler::WordsToStr(String& out_str) {
+	void MainHandler::WordsToStr(std::vector<Word>& words, String& out_str) {
 		auto printWordType = [&](WordType type) {
 			switch (type)
 			{

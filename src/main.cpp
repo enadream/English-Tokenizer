@@ -31,7 +31,6 @@ int main() {
 		return GetLastError();
 	}
 
-
 	Ecli program;
 	program.Start();
 }

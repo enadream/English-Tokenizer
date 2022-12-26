@@ -1,6 +1,8 @@
 #ifndef VERB_HPP
 #define VERB_HPP
 
+
+#include <vector>
 // User defined libs
 #include "misc/data_types.hpp"
 #include "misc/string.hpp"
@@ -88,28 +90,30 @@ namespace verb {
 		IrrVerbsList irrVerbCollection;
 
 	private: // Functions
-		int16 ED_Parser(const char* verb_chars, const uint8& lenght, Verb** out_verbs) const;
-		int16 S_Parser(const char* verb_chars, const uint8& lenght, Verb** out_verbs) const;
-		int16 ING_Parser(const char* verb_chars, const uint8& lenght, Verb** out_verbs) const;
-		void CheckException_S(Verb& verb) const;
-		void CheckException_ING(Verb& verb) const;
-		void CheckException_ED(Verb& verb) const;
-		int8 SearchVerb(const char* verb_chars, const int& length, Verb**& out_verbs, SuffixGroup& exception_p) const;
-		Verb& CreateNewVerb(const char* verb_chars, const int& str_lenght, const SuffixGroup& exception_p);
+		uint8 ED_Parser(const char* verb_chars, const uint8& lenght, std::vector<Verb*>& out_verbs) const;
+		uint8 ING_Parser(const char* verb_chars, const uint8& lenght, std::vector<Verb*>& out_verbs) const;
+		uint8 S_Parser(const char* verb_chars, const uint8& lenght, std::vector<Verb*>& out_verbs) const;
+
+		uint8 FindVerb(const char* verb_chars, const int& length, std::vector<Verb*>* out_verbs = nullptr) const;
+		uint8 FindWithException(const char* verb_chars, const int& length, SuffixGroup& exception_p, std::vector<Verb*>& out_verbs) const;
+
+		Verb& CreateVerb(const char* verb_chars, const int& str_lenght, const SuffixGroup& exception_p);
 		void CreateIrregularVerb(Verb& verb);
 		int8 UpdateIrrVerbAdress(Verb& new_address, const Verb& old_adress);
 		int8 AddNewVerb(const char* line, const uint16& size);
 
+		void CheckException_S(Verb& verb) const;
+		void CheckException_ING(Verb& verb) const;
+		void CheckException_ED(Verb& verb) const;
+
 		void ExceptionToStr(const int8 type, const Suffix_t& ex_type, String& out_string) const;
 		void VerbToStr(const Verb& verb, String& out_string) const;
-		void VerbsToStr(Verb* const* verbs, uint16 verb_size, String& out_string) const;
 	public: // Functions
 		VerbHandler();
 		~VerbHandler();
 		void GetVerbsWithIndex(const char* index_couple, String& out_string);
 		uint16 GetAllIrregularVerbs(String& out_string) const;
-		int8 ParseVerb(const String& raw_string, String& out_result, bool parse_flag = false) const;
-		int8 FindVerb(const char* verb_chars, const int& length, bool hold_verb = false, Verb** out_verbs = nullptr) const;
+		int16 ParseVerb(const String& raw_string, String& out_string, const bool write_result) const;
 		void MultipleVerbAdder(const char* file, const uint64& size);
 		int8 DeleteAll();
 	};

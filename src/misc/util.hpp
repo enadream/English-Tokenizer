@@ -13,6 +13,14 @@ namespace util {
 		}
 	}
 
+	// Copy one value to whole array
+	template <typename Type>
+	inline void MemSet(Type* dest, const Type& source, const uint32& length) {
+		for (uint32 i = 0; i < length; i++) {
+			dest[i] = source;
+		}
+	}
+
 	// Returns size of an array until a value. The value is excluded.
 	template <typename Type>
 	inline uint32 SizeUntilValue(const Type* source, const Type value = '\0') {
@@ -23,7 +31,7 @@ namespace util {
 		return 0;
 	}
 
-	inline char DigitToChar(const int64& digit) noexcept{
+	inline char DigitToChar(const int64& digit) noexcept {
 		if (-1 < digit && digit < 10) {// 48 - 57 ASCII 0-9
 			return digit + 48;
 		}
@@ -120,6 +128,17 @@ namespace util {
 			return false;
 			break;
 		}
+	}
+
+	inline int64 CopyStr(char* dest, const char* target, const char break_chr = '\0') {
+		int64 i = -1;
+		// User didn't mention the size
+		do {
+			i++;
+			dest[i] = target[i];
+		} while (target[i] != break_chr);
+
+		return i;
 	}
 }
 

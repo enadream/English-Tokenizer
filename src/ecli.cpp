@@ -8,7 +8,7 @@
 
 #include "misc/string.hpp"
 #include "misc/data_types.hpp"
-#include "misc/text_data.hpp"
+#include "text_data.hpp"
 
 #define COMMAND_LINE_LENGTH 5000
 #define MAX_PARAMETER_AMOUNT 10
@@ -33,7 +33,7 @@ void Ecli::Start() {
 
 	auto printHeader = []() {
 		SetColor(3);
-		std::cout << "__________________ Welcome to the ChatBot (V0.45 @enadream) __________________\n\n" << std::endl;
+		std::cout << "__________________ Welcome to the ChatBot (V0.50 @enadream) __________________\n\n" << std::endl;
 		SetColor(7);
 	};
 
@@ -129,40 +129,36 @@ void Ecli::Start() {
 		}
 		else if (GetParamIdWName("parse", params, commandAmount) == 0) { // /parse
 			if (lastParamId = GetParamIdWName("-noun", params, commandAmount) > 0) {
-				mainHandler.Parse(handle::Noun, params[lastParamId].value);
+				mainHandler.ParseWithType(handle::Noun, params[lastParamId].value);
 			}
 			else if (lastParamId = GetParamIdWName("-verb", params, commandAmount) > 0) {
-				mainHandler.Parse(handle::Verb, params[lastParamId].value);
+				mainHandler.ParseWithType(handle::Verb, params[lastParamId].value);
 			}
 			else if (lastParamId = GetParamIdWName("-pronoun", params, commandAmount) > 0) {
-				mainHandler.Parse(handle::Pronoun, params[lastParamId].value);
+				mainHandler.ParseWithType(handle::Pronoun, params[lastParamId].value);
 			}
 			else if (lastParamId = GetParamIdWName("-adverb", params, commandAmount) > 0) {
-				mainHandler.Parse(handle::Adverb, params[lastParamId].value);
+				mainHandler.ParseWithType(handle::Adverb, params[lastParamId].value);
 			}
 			else if (lastParamId = GetParamIdWName("-adjective", params, commandAmount) > 0) {
-				mainHandler.Parse(handle::Adjective, params[lastParamId].value);
+				mainHandler.ParseWithType(handle::Adjective, params[lastParamId].value);
 			}
 			else if (lastParamId = GetParamIdWName("-preposition", params, commandAmount) > 0) {
-				mainHandler.Parse(handle::Preposition, params[lastParamId].value);
+				mainHandler.ParseWithType(handle::Preposition, params[lastParamId].value);
 			}
 			else if (lastParamId = GetParamIdWName("-conjunction", params, commandAmount) > 0) {
-				mainHandler.Parse(handle::Conjunction, params[lastParamId].value);
+				mainHandler.ParseWithType(handle::Conjunction, params[lastParamId].value);
 			}
 			else if (lastParamId = GetParamIdWName("-interjection", params, commandAmount) > 0) {
-				mainHandler.Parse(handle::Interjection, params[lastParamId].value);
-			}
-			else if (lastParamId = GetParamIdWName("-s", params, commandAmount) > 0) {
-				mainHandler.ParseSentence(params[lastParamId].value);
+				mainHandler.ParseWithType(handle::Interjection, params[lastParamId].value);
 			}
 			else {
-				mainHandler.Parse(params[0].value);
+				mainHandler.ParseMultithread(params[0].value, true, nullptr);
 			}
 
 			std::cout << "\n";
 		}
 		else if (GetParamIdWName("print", params, commandAmount) == 0) {
-
 			if (GetParamIdWName("-buffer", params, commandAmount) > 0) {
 				if (buffer.capacity > 0) {
 					Log::Info("IO BUFFER:\n") << buffer.As<char>() << "\n";
@@ -193,48 +189,52 @@ void Ecli::Start() {
 		}
 		else if (GetParamIdWName("read", params, commandAmount) == 0) {
 			buffer.Release();
+			bool print_suc = false;
+			if (GetParamIdWName("-true", params, commandAmount) > 0) {
+				print_suc = true;
+			}
 			if (lastParamId = GetParamIdWName("-dir", params, commandAmount) > 0) {
 				if (GetParamIdWName("-all", params, commandAmount) > 0) {
 					// Read all files with default namaes
 				}
 				else if (GetParamIdWName("-noun", params, commandAmount) > 0) {
 					if (FileSystem::ReadFromDisk(buffer, params[lastParamId].value.EndString().Chars()) == 0) {
-						mainHandler.Read(handle::Noun, buffer.As<char>(), buffer.capacity);
+						mainHandler.Read(handle::Noun, buffer.As<char>(), buffer.capacity, print_suc);
 					}
 				}
 				else if (GetParamIdWName("-verb", params, commandAmount) > 0) {
 					if (FileSystem::ReadFromDisk(buffer, params[lastParamId].value.EndString().Chars()) == 0) {
-						mainHandler.Read(handle::Verb, buffer.As<char>(), buffer.capacity);
+						mainHandler.Read(handle::Verb, buffer.As<char>(), buffer.capacity, print_suc);
 					}
 				}
 				else if (GetParamIdWName("-adverb", params, commandAmount) > 0) {
 					if (FileSystem::ReadFromDisk(buffer, params[lastParamId].value.EndString().Chars()) == 0) {
-						mainHandler.Read(handle::Adverb, buffer.As<char>(), buffer.capacity);
+						mainHandler.Read(handle::Adverb, buffer.As<char>(), buffer.capacity, print_suc);
 					}
 				}
 				else if (GetParamIdWName("-pronoun", params, commandAmount) > 0) {
 					if (FileSystem::ReadFromDisk(buffer, params[lastParamId].value.EndString().Chars()) == 0) {
-						mainHandler.Read(handle::Pronoun, buffer.As<char>(), buffer.capacity);
+						mainHandler.Read(handle::Pronoun, buffer.As<char>(), buffer.capacity, print_suc);
 					}
 				}
 				else if (GetParamIdWName("-adjective", params, commandAmount) > 0) {
 					if (FileSystem::ReadFromDisk(buffer, params[lastParamId].value.EndString().Chars()) == 0) {
-						mainHandler.Read(handle::Adjective, buffer.As<char>(), buffer.capacity);
+						mainHandler.Read(handle::Adjective, buffer.As<char>(), buffer.capacity, print_suc);
 					}
 				}
 				else if (GetParamIdWName("-preposition", params, commandAmount) > 0) {
 					if (FileSystem::ReadFromDisk(buffer, params[lastParamId].value.EndString().Chars()) == 0) {
-						mainHandler.Read(handle::Preposition, buffer.As<char>(), buffer.capacity);
+						mainHandler.Read(handle::Preposition, buffer.As<char>(), buffer.capacity, print_suc);
 					}
 				}
 				else if (GetParamIdWName("-conjunction", params, commandAmount) > 0) {
 					if (FileSystem::ReadFromDisk(buffer, params[lastParamId].value.EndString().Chars()) == 0) {
-						mainHandler.Read(handle::Conjunction, buffer.As<char>(), buffer.capacity);
+						mainHandler.Read(handle::Conjunction, buffer.As<char>(), buffer.capacity, print_suc);
 					}
 				}
 				else if (GetParamIdWName("-interjection", params, commandAmount) > 0) {
 					if (FileSystem::ReadFromDisk(buffer, params[lastParamId].value.EndString().Chars()) == 0) {
-						mainHandler.Read(handle::Interjection, buffer.As<char>(), buffer.capacity);
+						mainHandler.Read(handle::Interjection, buffer.As<char>(), buffer.capacity, print_suc);
 					}
 				}
 				else {
@@ -246,9 +246,13 @@ void Ecli::Start() {
 			}
 			std::cout << "\n";
 		}
+		else if (GetParamIdWName("sr_parse", params, commandAmount) == 0) {
+			mainHandler.ParseSentence(params[0].value);
+			std::cout << "\n";
+		}
 		else if (GetParamIdWName("tokenize", params, commandAmount) == 0) {
 			String output_str;
-			
+
 			mainHandler.tokenize.ParseString(params[0].value);
 			mainHandler.tokenize.GetAllSentences(output_str);
 			mainHandler.tokenize.FreeAll();

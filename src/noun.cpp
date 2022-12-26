@@ -9,24 +9,24 @@
 
 namespace noun {
 	NounHandler::NounHandler() {
-		nounIndexes = new NounIndexList[NOUN_ROW * NOUN_COL];
+		nounLists = new NounList[NOUN_ROW * NOUN_COL];
 		irrNounList.nouns = nullptr;
 		irrNounList.amount = 0;
 		irrNounList.capacity = 0;
 
 		for (uint32 row = 0; row < NOUN_ROW; row++) {
 			for (int32 col = 0; col < NOUN_COL; col++) {
-				nounIndexes[row * NOUN_COL + col].nouns = nullptr;
-				nounIndexes[row * NOUN_COL + col].amount = 0;
-				nounIndexes[row * NOUN_COL + col].capacity = 0;
-				nounIndexes[row * NOUN_COL + col].indicator[0] = 'a' + row;
+				nounLists[row * NOUN_COL + col].nouns = nullptr;
+				nounLists[row * NOUN_COL + col].amount = 0;
+				nounLists[row * NOUN_COL + col].capacity = 0;
+				nounLists[row * NOUN_COL + col].indicator[0] = 'a' + row;
 
 				if (col < 26)
-					nounIndexes[row * NOUN_COL + col].indicator[1] = 'a' + col;
+					nounLists[row * NOUN_COL + col].indicator[1] = 'a' + col;
 				else if (col == 26)
-					nounIndexes[row * NOUN_COL + col].indicator[1] = '-';
+					nounLists[row * NOUN_COL + col].indicator[1] = '-';
 				else { // col 27 reserved for one char nouns i.e a
-					nounIndexes[row * NOUN_COL + col].indicator[1] = ' ';
+					nounLists[row * NOUN_COL + col].indicator[1] = ' ';
 				}
 
 
@@ -38,12 +38,12 @@ namespace noun {
 		// Delete each noun heap
 		for (int row = 0; row < NOUN_ROW; row++) {
 			for (int col = 0; col < NOUN_COL; col++) {
-				if (nounIndexes[row * NOUN_COL + col].nouns != nullptr)
-					delete[] nounIndexes[row * NOUN_COL + col].nouns;
+				if (nounLists[row * NOUN_COL + col].nouns != nullptr)
+					delete[] nounLists[row * NOUN_COL + col].nouns;
 			}
 		}
 		// Delete container
-		delete[] nounIndexes;
+		delete[] nounLists;
 		// Delete irregular noun collections
 		if (irrNounList.nouns != nullptr)
 			delete[] irrNounList.nouns;
@@ -52,11 +52,11 @@ namespace noun {
 	void NounHandler::DeleteAll() {
 		for (int row = 0; row < NOUN_ROW; row++) {
 			for (int col = 0; col < NOUN_COL; col++) {
-				if (nounIndexes[row * NOUN_COL + col].nouns != nullptr) {
-					delete[] nounIndexes[row * NOUN_COL + col].nouns;
-					nounIndexes[row * NOUN_COL + col].capacity = 0;
-					nounIndexes[row * NOUN_COL + col].amount = 0;
-					nounIndexes[row * NOUN_COL + col].nouns = nullptr;
+				if (nounLists[row * NOUN_COL + col].nouns != nullptr) {
+					delete[] nounLists[row * NOUN_COL + col].nouns;
+					nounLists[row * NOUN_COL + col].capacity = 0;
+					nounLists[row * NOUN_COL + col].amount = 0;
+					nounLists[row * NOUN_COL + col].nouns = nullptr;
 				}
 			}
 		}
@@ -115,22 +115,18 @@ namespace noun {
 		noun.s = None;
 	}
 
-	int16 NounHandler::S_Parser(const char* noun_chars, const uint8& lenght, Noun*& out_noun) const {
+	uint8 NounHandler::S_Parser(const char* noun_chars, const uint8& lenght, std::vector<Noun*>& out_nouns) const {
 		// None, EndsWith_Cy, EndsWith_ss, EndsWith_zz, EndsWith_ch, EndsWith_sh, EndsWith_s, EndsWith_z, EndsWith_x, EndsWith_o
 		// -s		-(-y)ies	-es			   -es			-es			-es			 -ses		 -zes	,	 -es    ,	-es
 
+		uint8 foundNouns = 0;
 		if (lenght > 2) { // the input text has to be at least 3 chars
 			if (noun_chars[lenght - 1] == 's') { // input str ends with -s
-				{
-					out_noun = FindWithException(noun_chars, lenght - 1, None);
-					if (out_noun != nullptr)
-						return None;
-				}
+				foundNouns += FindWithException(noun_chars, lenght - 1, None, out_nouns);
+
 				if (noun_chars[lenght - 2] == 'e') { // input str ends with -es
 					{
-						out_noun = FindWithException(noun_chars, lenght - 2, Suffix_es);
-						if (out_noun != nullptr)
-							return Suffix_es;
+						foundNouns += FindWithException(noun_chars, lenght - 2, Suffix_es, out_nouns);
 					}
 					if (noun_chars[lenght - 3] == 'i') { // input str ends with -ies
 						char tempNoun[NOUN_CHAR_SIZE]; // Creating a temporary space for noun
@@ -138,27 +134,21 @@ namespace noun {
 						tempNoun[lenght - 3] = 'y'; // adding e to the last char of the noun 
 
 						// exceptions.s = Suffix_0y_ies; // setting the suffix type
-						out_noun = FindWithException(tempNoun, lenght - 2, Suffix_0y_ies);
-						if (out_noun != nullptr)
-							return Suffix_0y_ies;
+						foundNouns += FindWithException(tempNoun, lenght - 2, Suffix_0y_ies, out_nouns);
 					}
 					if (lenght > 4) {
 						if (noun_chars[lenght - 3] == 's' && noun_chars[lenght - 4] == 's') { // input str ends with -sses
-							out_noun = FindWithException(noun_chars, lenght - 3, Suffix_ses);
-							if (out_noun != nullptr)
-								return Suffix_ses;
+							foundNouns += FindWithException(noun_chars, lenght - 3, Suffix_ses, out_nouns);
 						}
 						else if (noun_chars[lenght - 3] == 'z' && noun_chars[lenght - 4] == 'z') { // input str ends with -zzes
-							out_noun = FindWithException(noun_chars, lenght - 3, Suffix_zes);
-							if (out_noun != nullptr)
-								return Suffix_zes;
+							foundNouns += FindWithException(noun_chars, lenght - 3, Suffix_zes, out_nouns);
 						}
 					}
 				}
 			}
 		}
 
-		return -1;
+		return foundNouns;
 	}
 
 	void NounHandler::CreateIrrNoun(Noun& noun) {
@@ -233,15 +223,19 @@ namespace noun {
 		for (uint32 i = 0; i < length; i++) { // Read all chars
 			char letter = util::ToLowerCase(word_chars[i]);
 			if (letter != 0) {
-				temp[lastTempIndex] = letter;
-				lastTempIndex += 1; // Increase length by one
+				if (lastTempIndex < NOUN_CHAR_SIZE) // Length control before adding the temp array
+					temp[lastTempIndex++] = letter;
+				else
+					return -2;
 			}
 			else if (word_chars[i] == ' ' || word_chars[i] == '\t') {
 				continue;
 			}
 			else if (word_chars[i] == '-' && lastTempIndex != 0) {
-				temp[lastTempIndex] = letter;
-				lastTempIndex += 1; // Increase length by one
+				if (lastTempIndex < NOUN_CHAR_SIZE) // Length control before adding the temp array
+					temp[lastTempIndex++] = word_chars[i];
+				else
+					return -2;
 			}
 			else if (word_chars[i] == '#') { // Command line
 				commanLine = true;
@@ -256,7 +250,7 @@ namespace noun {
 				else if (lastTempIndex < 1) { // Size control
 					return 2;
 				}
-				if (FindNoun(temp, lastTempIndex) != nullptr) { // Existence control
+				if (FindNoun(temp, lastTempIndex) != 0) { // Existence control
 					return -4;
 				}
 
@@ -285,13 +279,12 @@ namespace noun {
 			CreateIrrNoun(CreateNewNoun(temp, lastTempIndex, IrrPlural));
 		}
 		else {
-			if (FindNoun(temp, lastTempIndex) != nullptr) { // Existence control
+			if (FindNoun(temp, lastTempIndex) != 0) { // Existence control
 				return -4;
 			}
 			// Create new noun
 			CreateNewNoun(temp, lastTempIndex, Undefined);
 		}
-
 
 		return 1;
 	}
@@ -313,25 +306,23 @@ namespace noun {
 		int id = row * NOUN_COL + col;
 
 		// Check index list size
-		if (nounIndexes[id].capacity > nounIndexes[id].amount) {
-			// There is enough space for new verb
-		}
-		else { // There is no empyt slot to put new word
-			if (nounIndexes[id].capacity > 0) { // If current capacity bigger than 0
+		if (nounLists[id].amount + 1 > nounLists[id].capacity) {
+
+			if (nounLists[id].capacity > 0) { // If current capacity bigger than 0
 				// Update new capacity
-				nounIndexes[id].capacity = nounIndexes[id].capacity * NOUN_SIZE_INC_COEF;
+				nounLists[id].capacity = nounLists[id].capacity * NOUN_SIZE_INC_COEF;
 				// Hold old pointer
-				Noun* p_old_data = nounIndexes[id].nouns;
+				Noun* p_old_data = nounLists[id].nouns;
 				// Create new verbs array
-				nounIndexes[id].nouns = new Noun[nounIndexes[id].capacity];
+				nounLists[id].nouns = new Noun[nounLists[id].capacity];
 				// Copy Old data to new array
-				for (uint32 item = 0; item < nounIndexes[id].amount; item++) {
+				for (uint32 item = 0; item < nounLists[id].amount; item++) {
 					// Copy data
-					nounIndexes[id].nouns[item] = p_old_data[item];
+					nounLists[id].nouns[item] = p_old_data[item];
 					// If the verb is irregular update the adress
-					if (nounIndexes[id].nouns[item].s == IrrSingular ||
-						nounIndexes[id].nouns[item].s == IrrPlural) {
-						UpdateIrrNounAdress(nounIndexes[id].nouns[item], p_old_data[item]);
+					if (nounLists[id].nouns[item].s == IrrSingular ||
+						nounLists[id].nouns[item].s == IrrPlural) {
+						UpdateIrrNounAdress(nounLists[id].nouns[item], p_old_data[item]);
 					}
 
 				}
@@ -341,49 +332,49 @@ namespace noun {
 			else { // Initialize new heap array
 				// Set capacity
 				if (col == 26) { // index for '-' i.e "x-"
-					nounIndexes[id].capacity = MIN_NOUN_SIZE / 2;
+					nounLists[id].capacity = MIN_NOUN_SIZE / 2;
 				}
 				else if (col == 27) { // index for ' ' i.e "a" one char noun
-					nounIndexes[id].capacity = 1;
+					nounLists[id].capacity = 1;
 				}
 				else {
-					nounIndexes[id].capacity = MIN_NOUN_SIZE;
+					nounLists[id].capacity = MIN_NOUN_SIZE;
 				}
 
 				// Create a space
-				nounIndexes[id].nouns = new Noun[nounIndexes[id].capacity];
+				nounLists[id].nouns = new Noun[nounLists[id].capacity];
 			}
 		}
 
 		// Copy chars to buffer verb and increase the size of verb
-		util::MemCpy(nounIndexes[id].nouns[nounIndexes[id].amount].chars, noun_chars, str_length);
-		nounIndexes[id].nouns[nounIndexes[id].amount].length = str_length;
+		util::MemCpy(nounLists[id].nouns[nounLists[id].amount].chars, noun_chars, str_length);
+		nounLists[id].nouns[nounLists[id].amount].length = str_length;
 
 		// Check Exception -S 
 		if (exception_p == IrrSingular) {
 			// Change regularity of the noun
-			nounIndexes[id].nouns[nounIndexes[id].amount].s = IrrSingular;
+			nounLists[id].nouns[nounLists[id].amount].s = IrrSingular;
 		}
 		else if (exception_p == IrrPlural) {
 			// Change regularity of the noun
-			nounIndexes[id].nouns[nounIndexes[id].amount].s = IrrPlural;
+			nounLists[id].nouns[nounLists[id].amount].s = IrrPlural;
 		}
 		else { // When the noun is regular
 			// Check S exception
 			if (exception_p == Undefined) {
-				CheckException_S(nounIndexes[id].nouns[nounIndexes[id].amount]);
+				CheckException_S(nounLists[id].nouns[nounLists[id].amount]);
 			}
 			else {
-				nounIndexes[id].nouns[nounIndexes[id].amount].s = exception_p;
+				nounLists[id].nouns[nounLists[id].amount].s = exception_p;
 			}
 
 		}
 
 		// Increase last empty index by one
-		nounIndexes[id].amount += 1;
+		nounLists[id].amount += 1;
 
 		// Return the newly added noun's adress
-		return nounIndexes[id].nouns[nounIndexes[id].amount - 1];
+		return nounLists[id].nouns[nounLists[id].amount - 1];
 	}
 
 	void NounHandler::MultipleAdder(const char* file, const uint64& line_length) {
@@ -469,9 +460,11 @@ namespace noun {
 		}
 	}
 
-	Noun* NounHandler::FindNoun(const char* word_chars, const uint8& length) const {
+	uint8 NounHandler::FindNoun(const char* word_chars, const uint8& length, std::vector<Noun*>* out_nouns) const {
 		int row = word_chars[0] - 'a'; // 97 means 'a' in ASCII code
 		int col;
+
+		int8 foundAmount = 0;
 
 		if (length > 1) {
 			if (word_chars[1] == '-')
@@ -484,19 +477,24 @@ namespace noun {
 
 		int32 id = row * NOUN_COL + col;
 
-		for (int32 i = 0; i < nounIndexes[id].amount; i++) { // Get all nouns from buffer
-			if (nounIndexes[id].nouns[i].length == length) {
-				if (util::IsSameArray(nounIndexes[id].nouns[i].chars, word_chars, length)) {
-					return &nounIndexes[id].nouns[i];
+		for (int32 i = 0; i < nounLists[id].amount; i++) { // Get all nouns from buffer
+			if (nounLists[id].nouns[i].length == length) {
+				if (util::IsSameArray(nounLists[id].nouns[i].chars, word_chars, length)) {
+					if (out_nouns == nullptr) {
+						return 1;
+					}
+					else {
+						out_nouns->push_back(&nounLists[id].nouns[i]);
+						foundAmount += 1;
+					}
 				}
 			}
 		}
 
-		return nullptr;
+		return foundAmount;
 	}
 
-	Noun* NounHandler::FindWithException(const char* noun_chars, const int& length, Exception ex_type) const {
-
+	uint8 NounHandler::FindWithException(const char* noun_chars, const int& length, Exception ex_type, std::vector<Noun*>& out_nouns) const {
 		int row = noun_chars[0] - 'a'; // 97 means 'a' in ASCII code
 		int col;
 
@@ -510,25 +508,26 @@ namespace noun {
 			col = 27; // 27 reserved for one char nouns
 
 		int32 id = row * NOUN_COL + col;
+		uint8 foundAmount = 0;
 
-
-		for (int i = 0; i < nounIndexes[id].amount; i++) { // Get all verbs from buffer
+		for (int i = 0; i < nounLists[id].amount; i++) { // Get all verbs from buffer
 			//If they have same lenght
-			if (nounIndexes[id].nouns[i].length == length) {
+			if (nounLists[id].nouns[i].length == length) {
 				// If they have same type
-				if (ex_type == nounIndexes[id].nouns[i].s) {
+				if (ex_type == nounLists[id].nouns[i].s) {
 					// If they have same content
-					if (util::IsSameArray(nounIndexes[id].nouns[i].chars, noun_chars, length)) {
-						return &nounIndexes[id].nouns[i];
+					if (util::IsSameArray(nounLists[id].nouns[i].chars, noun_chars, length)) {
+						out_nouns.push_back(&nounLists[id].nouns[i]);
+						foundAmount++;
 					}
 				}
 			}
 		}
 
-		return nullptr;
+		return foundAmount;
 	}
 
-	int32 NounHandler::ParseNoun(const char* raw_word, const uint8& length_, String& out_string) const {
+	int32 NounHandler::ParseNoun(const String& raw_string, String& out_string, const bool write_result) const {
 		// return 2   : Empty line
 		// return -1  : No verb found.
 		// return +1  : The verb Successfully found.
@@ -539,10 +538,11 @@ namespace noun {
 
 		char noun_chars[150];
 		uint8 length = 0;
+		std::vector<Noun*> foundNouns;
 
-
-		auto printNoun = [&](Noun& noun) {
-			out_string += "1. ";
+		auto writeNoun = [&](Noun& noun, uint8 index) {
+			util::IntToStr(out_string, index + 1);
+			out_string += ". ";
 			out_string.Append(noun.chars, noun.length);
 
 			out_string += "\t[Sfx_S]: ";
@@ -553,18 +553,18 @@ namespace noun {
 		};
 
 		// Make all chars lowercase and get rid of spaces
-		for (int i = 0; i < length_; i++) {
-			char currentCh = util::ToLowerCase(raw_word[i]);
+		for (int i = 0; i < raw_string.Length(); i++) {
+			char currentCh = util::ToLowerCase(raw_string[i]);
 
 			if (currentCh != 0) // If the char is alphabetic
 				noun_chars[length++] = currentCh;
-			else if (raw_word[i] == ' ' || raw_word[i] == '\t')
+			else if (raw_string[i] == ' ' || raw_string[i] == '\t')
 				continue;
-			else if (raw_word[i] == '-') { // If the charachter is hyphen
+			else if (raw_string[i] == '-') { // If the charachter is hyphen
 				if (i == 0)
 					return -3; // First character cannot be hyphen
 				else
-					noun_chars[length++] = raw_word[i]; // Add hy
+					noun_chars[length++] = raw_string[i]; // Add hy
 			}
 			else
 				return -2; // There is some character which is not alphabetic
@@ -576,64 +576,57 @@ namespace noun {
 		else if (length > NOUN_CHAR_SIZE + 3)
 			return -5; // Character size exceeds NOUN_CHAR_SIZE size
 
-		Noun* foundNoun;
-
-
 		// Search if the noun in native form
-		foundNoun = FindNoun(noun_chars, length);
-
-		if (foundNoun != nullptr) {
-			// Turning noun data into str
-			printNoun(*foundNoun);
-			return 1;
-		}
-
+		uint8 foundAmount = FindNoun(noun_chars, length, &foundNouns);
 		// Search if the noun has -s
-		{
-			out_string += "\x1b[95m[Infectional Noun (-s)]: \x1b[0m";
-			bool is_es = true;
+		uint8 foundAmountSParser = S_Parser(noun_chars, length, foundNouns);
 
-			switch (S_Parser(noun_chars, length, foundNoun))
-			{
-			case -1:
-				is_es = false;
-				break;
-			case None:
-				out_string.Append((*foundNoun).chars, (*foundNoun).length);
-				out_string += " + s\n";
-				break;
-			case Suffix_es:
-				out_string.Append((*foundNoun).chars, (*foundNoun).length);
-				out_string += " + es\n";
-				break;
-			case Suffix_ses:
-				out_string.Append((*foundNoun).chars, (*foundNoun).length);
-				out_string += " + ses\n";
-				break;
-			case Suffix_zes:
-				out_string.Append((*foundNoun).chars, (*foundNoun).length);
-				out_string += " + zes\n";
-				break;
-			case Suffix_0y_ies:
-				out_string.Append((*foundNoun).chars, (*foundNoun).length);
-				out_string += "(-y) + ies\n";
-				break;
-			default:
-				Log::Error("S parser returns a value that doesn't exist in switch");
-				return -1;
-			}
-
-			if (is_es) { // If we found the verb in -s tags
+		if (write_result) {
+			if (foundAmount != 0) {
 				// Turning noun data into str
-				printNoun(*foundNoun);
-				return 1;
+				for (uint8 i = 0; i < foundAmount; i++)
+					writeNoun(*foundNouns[i], i);
 			}
-			else {
-				out_string.RemoveLast(34); // Remove last 34 chars
+			// Write s parse result
+			if (foundAmountSParser != 0) {
+				for (uint8 i = 0; i < foundAmountSParser; i++) {
+					out_string += "\x1b[95m[Infectional Noun (-s)]: \x1b[0m";
+					uint16 id = foundAmount + i;
+					switch (foundNouns[id]->s)
+					{
+					case None:
+						out_string.Append(foundNouns[id]->chars, foundNouns[id]->length);
+						out_string += " + s\n";
+						break;
+					case Suffix_es:
+						out_string.Append(foundNouns[id]->chars, foundNouns[id]->length);
+						out_string += " + es\n";
+						break;
+					case Suffix_ses:
+						out_string.Append(foundNouns[id]->chars, foundNouns[id]->length);
+						out_string += " + ses\n";
+						break;
+					case Suffix_zes:
+						out_string.Append(foundNouns[id]->chars, foundNouns[id]->length);
+						out_string += " + zes\n";
+						break;
+					case Suffix_0y_ies:
+						out_string.Append(foundNouns[id]->chars, foundNouns[id]->length);
+						out_string += "(-y) + ies\n";
+						break;
+					default:
+						Log::Error("S parser returns a value that doesn't exist in switch");
+						return -1;
+					}
+					writeNoun(*foundNouns[id], id);
+				}
 			}
 		}
 
-		return -1;
+		if (foundAmount + foundAmountSParser > 0)
+			return 1;
+		else
+			return -1;
 	}
 
 	void NounHandler::ExceptionToStr(const Exception ex_type, String& out_string) const {

@@ -1,7 +1,7 @@
 
 // User defined libs
 #include "buffer.hpp"
-#include "utility.hpp"
+#include "misc/util.hpp"
 
 Buffer::Buffer() {
 	data = nullptr;
@@ -35,7 +35,7 @@ void Buffer::IncreaseCapacity(uint64 size_byte) {
 		// create new heap area
 		data = new uint8[capacity + size_byte];
 		// copy values 
-		CopyData(*data, *p_old_buffer, capacity);
+		util::MemCpy(data, p_old_buffer, capacity);
 		// Increase new capacity
 		capacity += size_byte;
 		// free old heap area
