@@ -1,15 +1,17 @@
 #ifndef NOUN_HPP
 #define NOUN_HPP
 
-#include <vector>
+
 // User defined libs
 #include "misc/data_types.hpp"
 #include "misc/string.hpp"
+#include "words.hpp"
 
 #define NOUN_CHAR_SIZE 22
 
 namespace noun {
 	typedef enum Exception : uint8 {
+		// Suffixes
 		Undefined,
 		None,
 		IrrSingular,
@@ -18,6 +20,9 @@ namespace noun {
 		Suffix_zes,
 		Suffix_ses,
 		Suffix_0y_ies,
+		// Additions
+		BaseForm,
+		S_Parsed,
 	};
 
 	struct Noun // 24 byte
@@ -67,7 +72,7 @@ namespace noun {
 		void MultipleAdder(const char* file, const uint64& line_length);
 		uint8 FindNoun(const char* word_chars, const uint8& length, std::vector<Noun*>* out_nouns = nullptr) const;
 		uint8 FindWithException(const char* noun_chars, const int& length, Exception ex_type, std::vector<Noun*>& out_nouns) const;
-		int32 ParseNoun(const String& raw_string, String& out_string, const bool write_result) const;
+		int8 ParseNoun(const String& raw_string, TypeAndSuffixes& word, String& out_string, const bool write_result) const;
 		void ExceptionToStr(const Exception ex_type, String& out_string) const;
 	};
 }

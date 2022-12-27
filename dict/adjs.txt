@@ -11695,6 +11695,7 @@ non-conducting
 non-elective
 non-finite
 non-invertible
+non-linear
 non-living
 non-metric
 non-miscible

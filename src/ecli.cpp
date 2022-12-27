@@ -33,7 +33,7 @@ void Ecli::Start() {
 
 	auto printHeader = []() {
 		SetColor(3);
-		std::cout << "__________________ Welcome to the ChatBot (V0.50 @enadream) __________________\n\n" << std::endl;
+		std::cout << "__________________ Welcome to the ChatBot (V0.55 @enadream) __________________\n\n" << std::endl;
 		SetColor(7);
 	};
 
@@ -57,18 +57,11 @@ void Ecli::Start() {
 			PrintParams(params, commandAmount);
 		}
 
-		if (GetParamIdWName("add", params, commandAmount) == 0) {
-			lastParamId = GetParamIdWName("-verb", params, commandAmount);
-			if (lastParamId > 0) {
-
-			}
-		}
-		else if (GetParamIdWName("clear", params, commandAmount) == 0) {
+		if (GetParamIdWName("clear", params, commandAmount) == 0) {
 			system("CLS");
 			printHeader();
 		}
 		else if (GetParamIdWName("delete", params, commandAmount) == 0) {
-
 			if (GetParamIdWName("-buffer", params, commandAmount) > 0) {
 				buffer.Release();
 				Log::Info("IO buffer deleted successfully.\n");
@@ -78,35 +71,35 @@ void Ecli::Start() {
 				Log::Info("Tokens deleted successfully.\n");
 			}
 			else if (GetParamIdWName("-nouns", params, commandAmount) > 0) {
-				mainHandler.Delete(handle::Noun);
+				mainHandler.Delete(WordType::Noun);
 				Log::Info("Nouns deleted successfully.\n");
 			}
 			else if (GetParamIdWName("-verbs", params, commandAmount) > 0) {
-				mainHandler.Delete(handle::Verb);
+				mainHandler.Delete(WordType::Verb);
 				Log::Info("All the verbs deleted successfully.\n");
 			}
 			else if (GetParamIdWName("-pronouns", params, commandAmount) > 0) {
-				mainHandler.Delete(handle::Pronoun);
+				mainHandler.Delete(WordType::Pronoun);
 				Log::Info("Pronouns deleted successfully.\n");
 			}
 			else if (GetParamIdWName("-adverbs", params, commandAmount) > 0) {
-				mainHandler.Delete(handle::Adverb);
+				mainHandler.Delete(WordType::Adverb);
 				Log::Info("Adverbs deleted successfully.\n");
 			}
 			else if (GetParamIdWName("-adjectives", params, commandAmount) > 0) {
-				mainHandler.Delete(handle::Adjective);
+				mainHandler.Delete(WordType::Adjective);
 				Log::Info("Adjectives deleted successfully.\n");
 			}
 			else if (GetParamIdWName("-prepositions", params, commandAmount) > 0) {
-				mainHandler.Delete(handle::Preposition);
+				mainHandler.Delete(WordType::Preposition);
 				Log::Info("Prepositions deleted successfully.\n");
 			}
 			else if (GetParamIdWName("-conjunctions", params, commandAmount) > 0) {
-				mainHandler.Delete(handle::Conjunction);
+				mainHandler.Delete(WordType::Conjunction);
 				Log::Info("Conjunctions deleted successfully.\n");
 			}
 			else if (GetParamIdWName("-interjections", params, commandAmount) > 0) {
-				mainHandler.Delete(handle::Interjection);
+				mainHandler.Delete(WordType::Interjection);
 				Log::Info("Interjections deleted successfully.\n");
 			}
 			else {
@@ -118,9 +111,29 @@ void Ecli::Start() {
 			break;
 		}
 		else if (GetParamIdWName("help", params, commandAmount) == 0) {
-
-			if (GetParamIdWName("tenses", params, commandAmount) > 0) {
-				Log::Info("Time Tenses :\n") << HELP_TIME_TENSES << "\n";
+			if (GetParamIdWName("clear", params, commandAmount) > 0) {
+				Log::Info(HELP_PARAM_CLEAR) << "\n\n";
+			}
+			else if (GetParamIdWName("delete", params, commandAmount) > 0) {
+				Log::Info(HELP_PARAM_DELETE) << "\n\n";
+			}
+			else if (GetParamIdWName("exit", params, commandAmount) > 0) {
+				Log::Info(HELP_PARAM_EXIT) << "\n\n";
+			}
+			else if (GetParamIdWName("parse", params, commandAmount) > 0) {
+				Log::Info(HELP_PARAM_PARSE) << "\n\n";
+			}
+			else if (GetParamIdWName("print", params, commandAmount) > 0) {
+				Log::Info(HELP_PARAM_PRINT) << "\n\n";
+			}
+			else if (GetParamIdWName("read", params, commandAmount) > 0) {
+				Log::Info(HELP_PARAM_READ) << "\n\n";
+			}
+			else if (GetParamIdWName("sr_parse", params, commandAmount) > 0) {
+				Log::Info(HELP_PARAM_SR_PARSE) << "\n\n";
+			}
+			else if (GetParamIdWName("tokenize", params, commandAmount) > 0) {
+				Log::Info(HELP_PARAM_TOKENIZE) << "\n\n";
 			}
 			else {
 				Log::Info("All the existing commands are; \n") << HELP_MAIN << "\n";
@@ -129,28 +142,28 @@ void Ecli::Start() {
 		}
 		else if (GetParamIdWName("parse", params, commandAmount) == 0) { // /parse
 			if (lastParamId = GetParamIdWName("-noun", params, commandAmount) > 0) {
-				mainHandler.ParseWithType(handle::Noun, params[lastParamId].value);
+				mainHandler.ParseWithType(WordType::Noun, params[lastParamId].value);
 			}
 			else if (lastParamId = GetParamIdWName("-verb", params, commandAmount) > 0) {
-				mainHandler.ParseWithType(handle::Verb, params[lastParamId].value);
+				mainHandler.ParseWithType(WordType::Verb, params[lastParamId].value);
 			}
 			else if (lastParamId = GetParamIdWName("-pronoun", params, commandAmount) > 0) {
-				mainHandler.ParseWithType(handle::Pronoun, params[lastParamId].value);
+				mainHandler.ParseWithType(WordType::Pronoun, params[lastParamId].value);
 			}
 			else if (lastParamId = GetParamIdWName("-adverb", params, commandAmount) > 0) {
-				mainHandler.ParseWithType(handle::Adverb, params[lastParamId].value);
+				mainHandler.ParseWithType(WordType::Adverb, params[lastParamId].value);
 			}
 			else if (lastParamId = GetParamIdWName("-adjective", params, commandAmount) > 0) {
-				mainHandler.ParseWithType(handle::Adjective, params[lastParamId].value);
+				mainHandler.ParseWithType(WordType::Adjective, params[lastParamId].value);
 			}
 			else if (lastParamId = GetParamIdWName("-preposition", params, commandAmount) > 0) {
-				mainHandler.ParseWithType(handle::Preposition, params[lastParamId].value);
+				mainHandler.ParseWithType(WordType::Preposition, params[lastParamId].value);
 			}
 			else if (lastParamId = GetParamIdWName("-conjunction", params, commandAmount) > 0) {
-				mainHandler.ParseWithType(handle::Conjunction, params[lastParamId].value);
+				mainHandler.ParseWithType(WordType::Conjunction, params[lastParamId].value);
 			}
 			else if (lastParamId = GetParamIdWName("-interjection", params, commandAmount) > 0) {
-				mainHandler.ParseWithType(handle::Interjection, params[lastParamId].value);
+				mainHandler.ParseWithType(WordType::Interjection, params[lastParamId].value);
 			}
 			else {
 				mainHandler.ParseMultithread(params[0].value, true, nullptr);
@@ -178,63 +191,59 @@ void Ecli::Start() {
 				String output_str;
 				if (mainHandler.tokenize.GetAllSentences(output_str) == 1) {
 					output_str.EndString();
-					Log::Info("Parsed Text:\n") << output_str.Chars() << "\n";
+					Log::Info("All tokens:\n") << output_str.Chars() << "\n";
 				}
 				else {
 					Log::Warning("No token data found\n");
 				}
-
 			}
 			std::cout << "\n";
 		}
 		else if (GetParamIdWName("read", params, commandAmount) == 0) {
 			buffer.Release();
-			bool print_suc = false;
-			if (GetParamIdWName("-true", params, commandAmount) > 0) {
-				print_suc = true;
-			}
+
 			if (lastParamId = GetParamIdWName("-dir", params, commandAmount) > 0) {
 				if (GetParamIdWName("-all", params, commandAmount) > 0) {
 					// Read all files with default namaes
 				}
 				else if (GetParamIdWName("-noun", params, commandAmount) > 0) {
 					if (FileSystem::ReadFromDisk(buffer, params[lastParamId].value.EndString().Chars()) == 0) {
-						mainHandler.Read(handle::Noun, buffer.As<char>(), buffer.capacity, print_suc);
+						mainHandler.Read(WordType::Noun, buffer.As<char>(), buffer.capacity);
 					}
 				}
 				else if (GetParamIdWName("-verb", params, commandAmount) > 0) {
 					if (FileSystem::ReadFromDisk(buffer, params[lastParamId].value.EndString().Chars()) == 0) {
-						mainHandler.Read(handle::Verb, buffer.As<char>(), buffer.capacity, print_suc);
+						mainHandler.Read(WordType::Verb, buffer.As<char>(), buffer.capacity);
 					}
 				}
 				else if (GetParamIdWName("-adverb", params, commandAmount) > 0) {
 					if (FileSystem::ReadFromDisk(buffer, params[lastParamId].value.EndString().Chars()) == 0) {
-						mainHandler.Read(handle::Adverb, buffer.As<char>(), buffer.capacity, print_suc);
+						mainHandler.Read(WordType::Adverb, buffer.As<char>(), buffer.capacity);
 					}
 				}
 				else if (GetParamIdWName("-pronoun", params, commandAmount) > 0) {
 					if (FileSystem::ReadFromDisk(buffer, params[lastParamId].value.EndString().Chars()) == 0) {
-						mainHandler.Read(handle::Pronoun, buffer.As<char>(), buffer.capacity, print_suc);
+						mainHandler.Read(WordType::Pronoun, buffer.As<char>(), buffer.capacity);
 					}
 				}
 				else if (GetParamIdWName("-adjective", params, commandAmount) > 0) {
 					if (FileSystem::ReadFromDisk(buffer, params[lastParamId].value.EndString().Chars()) == 0) {
-						mainHandler.Read(handle::Adjective, buffer.As<char>(), buffer.capacity, print_suc);
+						mainHandler.Read(WordType::Adjective, buffer.As<char>(), buffer.capacity);
 					}
 				}
 				else if (GetParamIdWName("-preposition", params, commandAmount) > 0) {
 					if (FileSystem::ReadFromDisk(buffer, params[lastParamId].value.EndString().Chars()) == 0) {
-						mainHandler.Read(handle::Preposition, buffer.As<char>(), buffer.capacity, print_suc);
+						mainHandler.Read(WordType::Preposition, buffer.As<char>(), buffer.capacity);
 					}
 				}
 				else if (GetParamIdWName("-conjunction", params, commandAmount) > 0) {
 					if (FileSystem::ReadFromDisk(buffer, params[lastParamId].value.EndString().Chars()) == 0) {
-						mainHandler.Read(handle::Conjunction, buffer.As<char>(), buffer.capacity, print_suc);
+						mainHandler.Read(WordType::Conjunction, buffer.As<char>(), buffer.capacity);
 					}
 				}
 				else if (GetParamIdWName("-interjection", params, commandAmount) > 0) {
 					if (FileSystem::ReadFromDisk(buffer, params[lastParamId].value.EndString().Chars()) == 0) {
-						mainHandler.Read(handle::Interjection, buffer.As<char>(), buffer.capacity, print_suc);
+						mainHandler.Read(WordType::Interjection, buffer.As<char>(), buffer.capacity);
 					}
 				}
 				else {
@@ -258,7 +267,7 @@ void Ecli::Start() {
 			mainHandler.tokenize.FreeAll();
 			output_str.EndString();
 
-			Log::Info("Parsed Text:\n") << output_str.Chars() << "\n";
+			Log::Info("Tokenized Text:\n") << output_str.Chars() << "\n";
 		}
 		else {
 			Log::Error(HELP_ERROR_COMMAND_NFOUND) << "\n";

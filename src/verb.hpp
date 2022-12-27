@@ -2,10 +2,11 @@
 #define VERB_HPP
 
 
-#include <vector>
+
 // User defined libs
 #include "misc/data_types.hpp"
 #include "misc/string.hpp"
+#include "words.hpp"
 
 #define VERB_CHAR_SIZE 20
 
@@ -29,24 +30,11 @@ namespace verb {
 		Suffix_0e_ing,
 		Suffix_0ie_ying,
 		Suffix_X_ing,
-
 		// Additions
-		/*
-		DoubleLastChar, // Double the last char, this option determineable only from dictionary /DL double last char i.e stopped
-		EndsWith_e,  // Ends with e
-		EndsWith_Cy, // Ends with consonant + y
-		EndsWith_z,  // Ends with z
-		EndsWith_s,  // Ends with s
-		EndsWith_x,  // Ends with x
-		EndsWith_o,  // Ends with o
-		EndsWith_ss, // Ends with ss
-		EndsWith_zz, // Ends with zz
-		EndsWith_ch, // Ends with ch
-		EndsWith_sh, // Ends with sh
-		EndsWith_w_x_y, // Ends with w or x or y
-		EndsWith_Ce, // Ends with consonant + e
-		EndsWith_ie, // Ends with ie
-		EndsWith_XVC // Contains one vowel and ends with consonant (Consonants + Vowel + Consonant) */
+		BaseForm,
+		ED_Parsed,
+		S_Parsed,
+		ING_Parsed,
 	}Suffix_t;
 
 	struct SuffixGroup { // 3 byte
@@ -113,7 +101,7 @@ namespace verb {
 		~VerbHandler();
 		void GetVerbsWithIndex(const char* index_couple, String& out_string);
 		uint16 GetAllIrregularVerbs(String& out_string) const;
-		int16 ParseVerb(const String& raw_string, String& out_string, const bool write_result) const;
+		int8 ParseVerb(const String& raw_string, TypeAndSuffixes& word, String& out_string, const bool write_result) const;
 		void MultipleVerbAdder(const char* file, const uint64& size);
 		int8 DeleteAll();
 	};

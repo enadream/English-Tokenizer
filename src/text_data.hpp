@@ -4,22 +4,22 @@
 // Macros
 // IOP TEXTS
 #ifdef ECLI_HPP
-
 #define HELP_ERROR_COMMAND_NFOUND "The command you have entered could not be identified. \
 If you don't know what to do, you can consider to use 'help' command or 'exit' simply.\n"
 
 #define HELP_PRONOUN_IDS "-p1: I\n-p2: You\n-p3: We\n-p4: \
 They\n-p5: He\n-p6: She\n-p7: It\n"
 
-#define HELP_MAIN "\tclear : Use this command to clear console.\n\
-\tdelete : Use this command to delete buffers or data\n\
-\texit: Use this command to exit the program\n\
-\thelp : Use this command to get information about commands.\n\
-\tparse : Use this command to parse verbs, nouns, etc.\n\
-\tprint : Use this command to print some data.\n\
-\tread : Use this command to read data from disk.\n\
-\ttokenize : Use this command to tokenize a string.\n\
-\t-command : Use this parameter to see parsed command text.\n\
+#define HELP_MAIN "\t\x1b[38;5;45mclear\x1b[0m : Use this command to clear console.\n\
+\t\x1b[38;5;45mdelete\x1b[0m : Use this command to delete buffers or data.\n\
+\t\x1b[38;5;45mexit\x1b[0m : Use this command to exit the program.\n\
+\t\x1b[38;5;45mhelp\x1b[0m : Use this command to get information about commands.\n\
+\t\x1b[38;5;45mparse\x1b[0m : Use this command to parse verbs, nouns, etc.\n\
+\t\x1b[38;5;45msr_parse\x1b[0m : Use this command to parse a sentence.\n\
+\t\x1b[38;5;45mprint\x1b[0m : Use this command to print some data.\n\
+\t\x1b[38;5;45mread\x1b[0m : Use this command to read data from disk.\n\
+\t\x1b[38;5;45mtokenize\x1b[0m : Use this command to tokenize a string.\n\
+\t\x1b[38;5;45m-command\x1b[0m : Use this parameter to see parsed command text.\n\
 For the more information about spesific command or usage type \"help read\". i.e\n"
 
 #define HELP_TIME_TENSES "\t-t1: Past Simple Tense\n\
@@ -39,7 +39,62 @@ For the more information about spesific command or usage type \"help read\". i.e
 \t-t15: Conditional Perfect Tense\n\
 \t-t16: Conditional Perfect Continuous Tense\n"
 
-#define HEADER_MESSAGE "************** Welcome to the ChatBot (V0.3 @enadream) **************\n\n"
+#define HELP_PARAM_CLEAR "\x1b[38;5;45mclear\x1b[0m : This command clears the chatbot console and has no parameter to type.\n\
+Example usage;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m clear\x1b[49m"
+
+#define HELP_PARAM_DELETE "\x1b[38;5;45mdelete\x1b[0m : This command deletes data from ram and can have these parameters;\n\
+\t -buffer : This parameter deletes io buffer.\n\
+\t -tokens : This parameter deletes existing tokens.\n\
+\t -nouns  : This parameter deletes all nouns dictionary.\n\
+\t -verbs  : This parameter deletes all verbs dictionary.\n\
+\t -pronouns  : This parameter deletes all pronouns dictionary.\n\
+\t -adverbs  : This parameter deletes all adverbs dictionary.\n\
+\t -adjectives  : This parameter deletes all adjectives dictionary.\n\
+\t -prepositions : This parameter deletes all prepositions dictionary.\n\
+\t -conjunctions  : This parameter deletes all conjunctions dictionary.\n\
+\t -interjections : This parameter deletes all interjections dictionary.\n\
+Example usage;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m delete -verbs\x1b[49m"
+
+#define HELP_PARAM_EXIT "\x1b[38;5;45mexit\x1b[0m : This command closes the application and has no parameter to type.\n\
+Example usage;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m exit\x1b[49m"
+
+#define HELP_PARAM_PARSE "\x1b[38;5;45mparse\x1b[0m : This command parses text from console and can have these parameters;\n\
+\t \"\"    : (With no parameter) You can parse an input by looking all types.\n\
+\t -noun : This parameter parse the input by just looking to nouns.\n\
+\t -verb : This parameter parse the input by just looking to verbs.\n\
+\t -pronoun : This parameter parse the input by just looking to pronouns.\n\
+\t -adverb  : This parameter parse the input by just looking to adverbs.\n\
+\t -adjective : This parameter parse the input by just looking to adjectives.\n\
+\t -preposition : This parameter parse the input by just looking to prepositions.\n\
+\t -conjunction  : This parameter parse the input by just looking to conjunctions.\n\
+\t -interjection : This parameter parse the input by just looking to interjections.\n\
+Example usages;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m parse \"speaking\"\x1b[49m\n\
+\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m parse -adverb \"speaking\"\x1b[49m"
+
+#define HELP_PARAM_PRINT "\x1b[38;5;45mprint\x1b[0m : This command prints the existing data in ram and can have these parameters;\n\
+\t -buffer: This parameter prints data in io buffer if exist.\n\
+\t -irregulars: This parameter prints all irregular verbs.\n\
+\t -tokens: This parameter prints lastly tokenized sentence.\n\
+Example usage;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m print -irregulars\x1b[49m"
+
+#define HELP_PARAM_READ "\x1b[38;5;45mread\x1b[0m : This command reads data from disk and and can have these parameters;\n\
+\t -dir : This parameter indicates the directory of the file.\n\
+\t -noun : This parameter specifies the file as noun.\n\
+\t -verb : This parameter specifies the file as verb.\n\
+\t -adverb : This parameter specifies the file as adverb.\n\
+\t -pronoun : This parameter specifies the file as pronoun.\n\
+\t -adjective : This parameter specifies the file as adjective.\n\
+\t -preposition : This parameter specifies the file as preposition.\n\
+\t -conjunction : This parameter specifies the file as conjunction.\n\
+\t -interjection : This parameter specifies the file as interjection.\n\
+Example usages;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m read -dir \"dict/nouns.txt\" -noun\x1b[49m\n\
+\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m read -dir \"dict/verbs.txt\" -verb\x1b[49m"
+
+#define HELP_PARAM_SR_PARSE "\x1b[38;5;45msr_parse\x1b[0m : This command parse a sentence and doesn't take any parameter.\n\
+Example usage;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m sr_parse \"This is a simple sentence.\"\x1b[49m"
+
+#define HELP_PARAM_TOKENIZE "\x1b[38;5;45mtokenize\x1b[0m : This command tokenize an input and doesn't take any parameter.\n\
+Example usage;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m tokenize \"This is a simple sentence.\"\x1b[49m"
 
 #endif
 

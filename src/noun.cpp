@@ -527,7 +527,7 @@ namespace noun {
 		return foundAmount;
 	}
 
-	int32 NounHandler::ParseNoun(const String& raw_string, String& out_string, const bool write_result) const {
+	int8 NounHandler::ParseNoun(const String& raw_string, TypeAndSuffixes& word, String& out_string, const bool write_result) const {
 		// return 2   : Empty line
 		// return -1  : No verb found.
 		// return +1  : The verb Successfully found.
@@ -538,7 +538,7 @@ namespace noun {
 
 		char noun_chars[150];
 		uint8 length = 0;
-		std::vector<Noun*> foundNouns;
+		std::vector<Noun*> found_nouns;
 
 		auto writeNoun = [&](Noun& noun, uint8 index) {
 			util::IntToStr(out_string, index + 1);
@@ -577,54 +577,71 @@ namespace noun {
 			return -5; // Character size exceeds NOUN_CHAR_SIZE size
 
 		// Search if the noun in native form
-		uint8 foundAmount = FindNoun(noun_chars, length, &foundNouns);
+		uint8 foundAmount = FindNoun(noun_chars, length, &found_nouns);
 		// Search if the noun has -s
-		uint8 foundAmountSParser = S_Parser(noun_chars, length, foundNouns);
+		uint8 foundAmountSParser = S_Parser(noun_chars, length, found_nouns);
+
+		// Save information to word
+		if (foundAmount > 0) {
+			for (uint8 i = 0; i < foundAmount; i++) {
+				if (found_nouns[i]->s == IrrPlural)
+					word.suffixes.push_back(S_Parsed);
+				else
+					word.suffixes.push_back(BaseForm);
+			}
+		}
+		if (foundAmountSParser > 0) {
+			for (uint8 i = 0; i < foundAmountSParser; i++) {
+				word.suffixes.push_back(S_Parsed);
+			}
+		}
 
 		if (write_result) {
 			if (foundAmount != 0) {
 				// Turning noun data into str
 				for (uint8 i = 0; i < foundAmount; i++)
-					writeNoun(*foundNouns[i], i);
+					writeNoun(*found_nouns[i], i);
 			}
 			// Write s parse result
 			if (foundAmountSParser != 0) {
 				for (uint8 i = 0; i < foundAmountSParser; i++) {
 					out_string += "\x1b[95m[Infectional Noun (-s)]: \x1b[0m";
 					uint16 id = foundAmount + i;
-					switch (foundNouns[id]->s)
+					switch (found_nouns[id]->s)
 					{
 					case None:
-						out_string.Append(foundNouns[id]->chars, foundNouns[id]->length);
+						out_string.Append(found_nouns[id]->chars, found_nouns[id]->length);
 						out_string += " + s\n";
 						break;
 					case Suffix_es:
-						out_string.Append(foundNouns[id]->chars, foundNouns[id]->length);
+						out_string.Append(found_nouns[id]->chars, found_nouns[id]->length);
 						out_string += " + es\n";
 						break;
 					case Suffix_ses:
-						out_string.Append(foundNouns[id]->chars, foundNouns[id]->length);
+						out_string.Append(found_nouns[id]->chars, found_nouns[id]->length);
 						out_string += " + ses\n";
 						break;
 					case Suffix_zes:
-						out_string.Append(foundNouns[id]->chars, foundNouns[id]->length);
+						out_string.Append(found_nouns[id]->chars, found_nouns[id]->length);
 						out_string += " + zes\n";
 						break;
 					case Suffix_0y_ies:
-						out_string.Append(foundNouns[id]->chars, foundNouns[id]->length);
+						out_string.Append(found_nouns[id]->chars, found_nouns[id]->length);
 						out_string += "(-y) + ies\n";
 						break;
 					default:
 						Log::Error("S parser returns a value that doesn't exist in switch");
 						return -1;
 					}
-					writeNoun(*foundNouns[id], id);
+					writeNoun(*found_nouns[id], id);
 				}
 			}
 		}
 
-		if (foundAmount + foundAmountSParser > 0)
+		if (foundAmount + foundAmountSParser > 0) {
+			word.type = WordType::Noun;
 			return 1;
+		}
 		else
 			return -1;
 	}

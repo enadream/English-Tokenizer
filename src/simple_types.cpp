@@ -11,7 +11,7 @@
 namespace basic {
 #pragma region UnindexedList
 	UnindexedList::UnindexedList() {
-		words = new Word[MIN_WORD_AMOUNT_UNIDEXED];
+		words = new SimpleWord[MIN_WORD_AMOUNT_UNIDEXED];
 		amount = 0;
 		capacity = MIN_WORD_AMOUNT_UNIDEXED;
 	}
@@ -35,9 +35,9 @@ namespace basic {
 		}
 
 		// Hold old pointer
-		Word* old = words;
+		SimpleWord* old = words;
 		// Create new space
-		words = new Word[capacity];
+		words = new SimpleWord[capacity];
 		// Copy old data to new one
 		util::MemCpy(words, old, amount);
 		// Free old space
@@ -201,7 +201,7 @@ namespace basic {
 		return -1;
 	}
 
-	int32 UnindexedList::ParseWord(const String& raw_string, String& out_string, const bool write_result) {
+	int8 UnindexedList::ParseWord(const String& raw_string, String& out_string, const bool write_result) {
 		// return  1  : word found
 		// return -1  : The word has not found
 		// return -2  : Character size exceeds WORD_CHAR_SIZE size
@@ -361,7 +361,7 @@ namespace basic {
 		return 1;
 	}
 
-	Word* IndexedList::CreateWord(const char* word_chars, const uint32& str_length) {
+	SimpleWord* IndexedList::CreateWord(const char* word_chars, const uint32& str_length) {
 		// Detect the index
 		uint32 row = word_chars[0] - 'a';
 		uint32 col;
@@ -382,15 +382,15 @@ namespace basic {
 				else
 					wordLists[id].capacity = MIN_WORD_AMOUNT_INDEXED;
 				// Create new heap
-				wordLists[id].words = new Word[wordLists[id].capacity];
+				wordLists[id].words = new SimpleWord[wordLists[id].capacity];
 			}
 			else {
 				// Hold old pointer
-				Word* old_words = wordLists[id].words;
+				SimpleWord* old_words = wordLists[id].words;
 				// Update Capacity
 				wordLists[id].capacity *= WORD_INCR_COEF;
 				// Create new heap
-				wordLists[id].words = new Word[wordLists[id].capacity];
+				wordLists[id].words = new SimpleWord[wordLists[id].capacity];
 				// Copy old data
 				util::MemCpy(wordLists[id].words, old_words, wordLists[id].amount);
 				// Delete old heap
@@ -407,7 +407,7 @@ namespace basic {
 		return &wordLists[id].words[wordLists[id].amount - 1];
 	}
 
-	void IndexedList::MultipleAdder(const char* file, const uint64& line_length, const char* type, bool print_suc) {
+	void IndexedList::MultipleAdder(const char* file, const uint64& line_length, const char* type) {
 		uint32 successfull = 0;
 		uint32 nonAlphabetic = 0;
 		uint32 charExceedsSize = 0;
@@ -419,7 +419,6 @@ namespace basic {
 		String sizeSmaller2CharLines;
 		String nonUniqueLines;
 
-		String successfull_values(12);
 
 		auto calculateLineLength = [](const char& line) {
 			uint32 i = 0;
@@ -441,9 +440,6 @@ namespace basic {
 			switch (AddWord(&file[i], lineLength)) {
 			case 1:
 				successfull++;
-				if (print_suc) {
-					successfull_values.Append(&file[i], lineLength) += ", ";
-				}
 				break;
 			case -1: // There is some charachter which is not alphabetic
 				nonAlphabetic++;
@@ -493,12 +489,9 @@ namespace basic {
 			Log::Error(notUnique) << " " << type << " are not unique.\n" <<
 				"These lines; " << nonUniqueLines.EndString().Chars() << "\n";
 		}
-
-		if (print_suc)
-			Log::Info(successfull_values.EndString().Chars());
 	}
 
-	Word* IndexedList::FindWord(const char* word_chars, const uint8& str_length) {
+	SimpleWord* IndexedList::FindWord(const char* word_chars, const uint8& str_length) {
 		// Detect the index
 		uint32 row = word_chars[0] - 'a';
 		uint32 col;
@@ -520,7 +513,7 @@ namespace basic {
 		return nullptr;
 	}
 
-	int32 IndexedList::ParseWord(const String& raw_string, String& out_string, const bool write_result) {
+	int8 IndexedList::ParseWord(const String& raw_string, String& out_string, const bool write_result) {
 		// return  1  : word found
 		// return -1  : The word has not found
 		// return -2  : Character size exceeds WORD_CHAR_SIZE size
@@ -559,12 +552,12 @@ namespace basic {
 		}
 
 
-		Word* found = FindWord(temp, lastTempIndex);
+		SimpleWord* found_word = FindWord(temp, lastTempIndex);
 
-		if (found != nullptr) {
+		if (found_word != nullptr) {
 			if (write_result) {
 				out_string += "1. ";
-				out_string.Append(found->chars, found->length);
+				out_string.Append(found_word->chars, found_word->length);
 				out_string += '\n';
 				out_string.EndString();
 			}

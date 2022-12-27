@@ -11,7 +11,7 @@
 
 namespace basic {
 
-	struct Word // 24 byte
+	struct SimpleWord // 24 byte
 	{
 		char chars[WORD_CHAR_SIZE];
 		uint8 length = 0;
@@ -19,7 +19,7 @@ namespace basic {
 
 	class UnindexedList {
 	private:
-		Word* words = nullptr;
+		SimpleWord* words = nullptr;
 		uint32 amount = 0;
 		uint32 capacity = 0;
 
@@ -34,11 +34,11 @@ namespace basic {
 		int8 AddWord(const char* word_chars, const uint32& length);
 		void MultipleAdder(const char* file, const uint64& line_length, const char* type);
 		int32 FindWord(const char* word_chars, const uint8& length);
-		int32 ParseWord(const String& raw_string, String& out_string, const bool write_result);
+		int8 ParseWord(const String& raw_string, String& out_string, const bool write_result);
 	};
 
 	struct WordList { // 16 byte
-		Word* words;
+		SimpleWord* words;
 		uint16 capacity;
 		uint16 amount;
 		char indicator[2];
@@ -49,7 +49,7 @@ namespace basic {
 		WordList* wordLists;
 
 	private: // Functions
-		Word* CreateWord(const char* word_chars, const uint32& str_length);
+		SimpleWord* CreateWord(const char* word_chars, const uint32& str_length);
 
 	public:
 		IndexedList();
@@ -57,9 +57,9 @@ namespace basic {
 
 		void FreeAll();
 		int8 AddWord(const char* word_chars, const uint32& length);
-		void MultipleAdder(const char* file, const uint64& line_length, const char* type, bool print_suc);
-		Word* FindWord(const char* word_chars, const uint8& str_length);
-		int32 ParseWord(const String& raw_string, String& out_string, const bool write_result);
+		void MultipleAdder(const char* file, const uint64& line_length, const char* type);
+		SimpleWord* FindWord(const char* word_chars, const uint8& str_length);
+		int8 ParseWord(const String& raw_string, String& out_string, const bool write_result);
 	};
 }
 #endif // !CLOSED_CLASSES_HPP

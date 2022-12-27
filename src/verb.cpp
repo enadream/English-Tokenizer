@@ -555,7 +555,8 @@ namespace verb {
 		return buffer[row * VERB_COL + col].verbs[buffer[row * VERB_COL + col].verbAmount - 1];
 	}
 
-	int16 VerbHandler::ParseVerb(const String& raw_string, String& out_string, const bool write_result) const {
+	int8 VerbHandler::ParseVerb(const String& raw_string, TypeAndSuffixes& word,
+		String& out_string, const bool write_result) const {
 		// return +1  : The verb Successfully found.
 		// return -1  : No verb found.
 		// return -2  : There is some characters which is not alphabetic
@@ -565,7 +566,7 @@ namespace verb {
 
 		char verb_chars[150];
 		uint8 lenght = 0;
-		std::vector<Verb*> foundVerbs;
+		std::vector<Verb*> found_verbs;
 
 		auto writeVerb = [&](Verb& verb, uint16 i) {
 			util::IntToStr(out_string, i + 1);
@@ -600,43 +601,70 @@ namespace verb {
 			return -5; // Character size exceeds VERB_CHAR_SIZE size
 
 		// Parse if the verb in native form
-		uint8 foundAmount = FindVerb(verb_chars, lenght, &foundVerbs);
+		uint8 foundAmount = FindVerb(verb_chars, lenght, &found_verbs);
 		uint8 foundAmountEd = 0;
 		uint8 foundAmountIng = 0;
 		uint8 foundAmountS = 0;
 
+		if (foundAmount > 0) {
+			for (uint8 i = 0; i < foundAmount; i++) {
+				if (found_verbs[i]->suffixes.ed == IrregularVerb_V2)
+					word.suffixes.push_back(IrregularVerb_V2);
+				else if (found_verbs[i]->suffixes.ed == IrregularVerb_V3)
+					word.suffixes.push_back(IrregularVerb_V3);
+				else
+					word.suffixes.push_back(BaseForm);
+			}
+		}
+
 		// Parse if the verb has -ed
-		if (foundAmountEd = ED_Parser(verb_chars, lenght, foundVerbs) > 0);
+		if (foundAmountEd = ED_Parser(verb_chars, lenght, found_verbs) > 0) {
+			for (uint8 i = 0; i < foundAmountEd; i++) { // save information to word
+				uint8 id = foundAmount + i;
+				word.suffixes.push_back(ED_Parsed);
+			}
+		}
 		// Parse if the verb has -ing
-		else if (foundAmountIng = ING_Parser(verb_chars, lenght, foundVerbs) > 0);
+		else if (foundAmountIng = ING_Parser(verb_chars, lenght, found_verbs) > 0) {
+			for (uint8 i = 0; i < foundAmountIng; i++) { // save information to word
+				uint8 id = foundAmount + i;
+				word.suffixes.push_back(ING_Parsed);
+			}
+		}
 		// Parse if the verb has -s
-		else if (foundAmountS = S_Parser(verb_chars, lenght, foundVerbs) > 0);
+		else if (foundAmountS = S_Parser(verb_chars, lenght, found_verbs) > 0) {
+			for (uint8 i = 0; i < foundAmountS; i++) { // save information to word
+				uint8 id = foundAmount + i;
+				word.suffixes.push_back(S_Parsed);
+			}
+		}
+
 
 		if (write_result) { // Turn verbs into str
 			// Base form results
 			for (uint16 i = 0; i < foundAmount; i++) {
-				writeVerb(*foundVerbs[i], i);
+				writeVerb(*found_verbs[i], i);
 			}
 			// Inflectual verb ed results
 			for (uint16 i = 0; i < foundAmountEd; i++) {
 				out_string += "\x1b[95m[Infectional Verb (-ed)]: \x1b[0m";
 				uint8 id = foundAmount + i;
-				switch (foundVerbs[id]->suffixes.ed)
+				switch (found_verbs[id]->suffixes.ed)
 				{
 				case None:
-					out_string.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_string.Append(found_verbs[id]->chars, found_verbs[id]->length);
 					out_string += " + ed\n";
 					break;
 				case Suffix_0y_ied:
-					out_string.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_string.Append(found_verbs[id]->chars, found_verbs[id]->length);
 					out_string += "(-y) + ied\n";
 					break;
 				case Suffix_d:
-					out_string.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_string.Append(found_verbs[id]->chars, found_verbs[id]->length);
 					out_string += " + d\n";
 					break;
 				case Suffix_X_ed:
-					out_string.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_string.Append(found_verbs[id]->chars, found_verbs[id]->length);
 					out_string += " + (";
 					out_string += verb_chars[lenght - 3];
 					out_string += ")ed\n";
@@ -645,29 +673,29 @@ namespace verb {
 					Log::Error("ED parser returns a value that doesn't exist in switch.");
 					return -1;
 				}
-				writeVerb(*foundVerbs[id], id);
+				writeVerb(*found_verbs[id], id);
 			}
 			// Inflectual verb ing results
 			for (uint16 i = 0; i < foundAmountIng; i++) {
 				out_string += "\x1b[95m[Infectional Verb (-ing)]: \x1b[0m";
-				uint8 id = foundAmount + foundAmountEd + i;
+				uint8 id = foundAmount + i;
 
-				switch (foundVerbs[id]->suffixes.ing)
+				switch (found_verbs[id]->suffixes.ing)
 				{
 				case None:
-					out_string.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_string.Append(found_verbs[id]->chars, found_verbs[id]->length);
 					out_string += " + ing\n";
 					break;
 				case Suffix_0e_ing:
-					out_string.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_string.Append(found_verbs[id]->chars, found_verbs[id]->length);
 					out_string += "(-e) + ing\n";
 					break;
 				case Suffix_0ie_ying:
-					out_string.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_string.Append(found_verbs[id]->chars, found_verbs[id]->length);
 					out_string += "(-ie) + ying\n";
 					break;
 				case Suffix_X_ing:
-					out_string.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_string.Append(found_verbs[id]->chars, found_verbs[id]->length);
 					out_string += " + (";
 					out_string += verb_chars[lenght - 4];
 					out_string += ")ing\n";
@@ -677,45 +705,47 @@ namespace verb {
 					return -1;
 				}
 				// Turning verb data into str
-				writeVerb(*foundVerbs[id], id);
+				writeVerb(*found_verbs[id], id);
 			}
 			// Inflectual verb s results
 			for (uint16 i = 0; i < foundAmountS; i++) {
 				out_string += "\x1b[95m[Infectional Verb (-s)]: \x1b[0m";
-				uint8 id = foundAmount + foundAmountEd + foundAmountIng + i;
+				uint8 id = foundAmount + i;
 
-				switch (foundVerbs[id]->suffixes.s)
+				switch (found_verbs[id]->suffixes.s)
 				{
 				case None:
-					out_string.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_string.Append(found_verbs[id]->chars, found_verbs[id]->length);
 					out_string += " + s\n";
 					break;
 				case Suffix_es:
-					out_string.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_string.Append(found_verbs[id]->chars, found_verbs[id]->length);
 					out_string += " + es\n";
 					break;
 				case Suffix_ses:
-					out_string.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_string.Append(found_verbs[id]->chars, found_verbs[id]->length);
 					out_string += " + ses\n";
 					break;
 				case Suffix_zes:
-					out_string.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_string.Append(found_verbs[id]->chars, found_verbs[id]->length);
 					out_string += " + zes\n";
 					break;
 				case Suffix_0y_ies:
-					out_string.Append(foundVerbs[0]->chars, foundVerbs[0]->length);
+					out_string.Append(found_verbs[id]->chars, found_verbs[id]->length);
 					out_string += "(-y) + ies\n";
 					break;
 				default:
 					Log::Error("S parser returns a value that doesn't exist in switch");
 					return -1;
 				}
-				writeVerb(*foundVerbs[id], id);
+				writeVerb(*found_verbs[id], id);
 			}
 		}
 
-		if (foundAmount + foundAmountEd + foundAmountIng + foundAmountS > 0)
+		if (foundAmount + foundAmountEd + foundAmountIng + foundAmountS > 0) {
+			word.type = WordType::Verb;
 			return 1;
+		}
 		else
 			return -1;
 	}
