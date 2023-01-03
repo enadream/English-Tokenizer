@@ -56,7 +56,7 @@ namespace util {
 		else if (letter > 96 && letter < 123) { // Char already lowercase
 			return letter;
 		}
-		else { // Charachter is not alphabetic
+		else { // Character is not alphabetic
 			return 0;
 		}
 	}

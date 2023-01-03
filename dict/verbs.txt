@@ -3726,7 +3726,7 @@ foam
 fob
 focalise
 focalize
-focus
+focus /S1
 fodder
 fog
 foil
@@ -6647,7 +6647,7 @@ reeve
 reexamine
 reface
 refashion
-refer
+refer /DL
 referee
 reference
 refill

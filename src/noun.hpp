@@ -23,6 +23,8 @@ namespace noun {
 		// Additions
 		BaseForm,
 		S_Parsed,
+		CliticS,
+		PluralPoss,
 	};
 
 	struct Noun // 24 byte
@@ -58,7 +60,8 @@ namespace noun {
 
 	private:
 		void CheckException_S(Noun& noun) const;
-		uint8 S_Parser(const char* noun_chars, const uint8& lenght, std::vector<Noun*>& out_nouns) const;
+		uint8 S_Parser(const char* noun_chars, const uint8& length, std::vector<Noun*>& out_nouns) const;
+		uint8 Pos_Parser(const char* noun_chars, const uint8& length, std::vector<Noun*>& out_nouns) const;
 		void CreateIrrNoun(Noun& noun);
 		int8 UpdateIrrNounAdress(Noun& new_address, const Noun& old_adress);
 
@@ -66,7 +69,6 @@ namespace noun {
 		NounHandler();
 		~NounHandler();
 
-		void DeleteAll();
 		int8 AddNoun(const char* word_chars, const uint32& length);
 		Noun& CreateNewNoun(const char* noun_chars, const uint32& str_length, const Exception& exception_p);
 		void MultipleAdder(const char* file, const uint64& line_length);
@@ -74,6 +76,7 @@ namespace noun {
 		uint8 FindWithException(const char* noun_chars, const int& length, Exception ex_type, std::vector<Noun*>& out_nouns) const;
 		int8 ParseNoun(const String& raw_string, TypeAndSuffixes& word, String& out_string, const bool write_result) const;
 		void ExceptionToStr(const Exception ex_type, String& out_string) const;
+		void Free();
 	};
 }
 

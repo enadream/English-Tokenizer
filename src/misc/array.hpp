@@ -1,20 +1,22 @@
 #ifndef ARRAY_HPP
 #define ARRAY_HPP
 
+#include "data_types.hpp"
+
 namespace util {
-	template <typename Type, size_t size>
+	template <typename Type, uint64 size>
 	class Array {
 	private:
 		Type m_data[size];
 	public:
-		constexpr size_t GetSize() const {
+		constexpr uint64 GetSize() const {
 			return size;
 		}
 
-		Type& operator[](size_t index) {
+		Type& operator[](uint64 index) {
 			return m_data[index];
 		}
-		const Type& operator[](size_t index) const {
+		const Type& operator[](uint64 index) const {
 			return m_data[index];
 		}
 

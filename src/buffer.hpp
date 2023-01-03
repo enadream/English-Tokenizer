@@ -15,7 +15,7 @@ public: // Functions
 	Buffer();
 	Buffer(const Buffer&) = default;
 
-	Buffer(uint64 size_byte);
+	explicit Buffer(uint64 size_byte);
 	~Buffer();
 
 	void Allocate(uint64 size_byte);

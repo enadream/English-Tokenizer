@@ -103,7 +103,7 @@ namespace verb {
 		uint16 GetAllIrregularVerbs(String& out_string) const;
 		int8 ParseVerb(const String& raw_string, TypeAndSuffixes& word, String& out_string, const bool write_result) const;
 		void MultipleVerbAdder(const char* file, const uint64& size);
-		int8 DeleteAll();
+		int8 Free();
 	};
 }
 

@@ -70,7 +70,6 @@ namespace util {
 	}
 
 	inline uint8 IsPunctuation(const char& one_char) {
-
 		switch (one_char)
 		{
 		case  ',':	    // Comma
@@ -90,6 +89,8 @@ namespace util {
 		case  ']':		// Close Brackets
 			return 8;
 		case  '/':		// Slash
+			return 9;
+		case  '%':		// Slash
 			return 9;
 		default:
 			return 0;

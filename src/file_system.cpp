@@ -28,7 +28,7 @@ int8 FileSystem::ReadFromDisk(Buffer& buffer, const char* file_dir) {
 	return 0;
 }
 
-int8 FileSystem::WriteToDisk(Buffer& buffer, const char* file_dir, const uint64& size) {
+int8 FileSystem::WriteToDisk(const char* data, const char* file_dir, const uint64& size) {
 	std::ofstream file(file_dir, std::ios::out);
 
 	if (!file.is_open()) {
@@ -36,7 +36,7 @@ int8 FileSystem::WriteToDisk(Buffer& buffer, const char* file_dir, const uint64&
 		return -1;
 	}
 
-	file.write(buffer.As<char>(), size);
+	file.write(data, size);
 	file.close();
 
 	Log::Info("The file has written successfully.\n");

@@ -5,3 +5,7 @@ but
 or
 yet
 so
+if
+whenever
+whether
+where

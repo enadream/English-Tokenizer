@@ -8,6 +8,9 @@ typedef unsigned char      uint8;  // 0 to 256
 typedef unsigned short     uint16; // 0 to 65,535
 typedef unsigned int       uint32; // 0 to 4,294,967,295
 typedef unsigned long long uint64; // 0 to 2^64-1
+typedef float              float32;
+typedef double             float64;
+
 
 // These macros must exactly match those in the Windows SDK's intsafe.h.
 #if not defined INT8_MIN

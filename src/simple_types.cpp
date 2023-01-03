@@ -16,9 +16,9 @@ namespace basic {
 		capacity = MIN_WORD_AMOUNT_UNIDEXED;
 	}
 	UnindexedList::~UnindexedList() {
-		FreeAll();
+		Free();
 	}
-	void UnindexedList::FreeAll() {
+	void UnindexedList::Free() {
 		delete[] words;
 		words = nullptr;
 		amount = 0;
@@ -190,7 +190,7 @@ namespace basic {
 		}
 	}
 
-	int32 UnindexedList::FindWord(const char* word_chars, const uint8& length) {
+	int32 UnindexedList::FindWord(const char* word_chars, const uint8& length) const {
 		for (uint32 i = 0; i < amount; i++) { // Check all words
 			if (length == words[i].length) { // If they have same length
 				if (util::IsSameArray(word_chars, words[i].chars, length)) {
@@ -218,7 +218,7 @@ namespace basic {
 				lastTempIndex += 1; // Increase length by one
 			}
 			else if (raw_string[i] == '-') {
-				temp[lastTempIndex] = letter;
+				temp[lastTempIndex] = raw_string[i];
 				lastTempIndex += 1; // Increase length by one
 			}
 			else if (raw_string[i] == ' ' || raw_string[i] == '\t') {
@@ -287,7 +287,7 @@ namespace basic {
 		delete[] wordLists;
 	}
 
-	void IndexedList::FreeAll() {
+	void IndexedList::Free() {
 		// Delete each word heap
 		for (int row = 0; row < WORD_ROW; row++) {
 			for (int col = 0; col < WORD_ROW; col++) {
@@ -529,7 +529,7 @@ namespace basic {
 				temp[lastTempIndex] = letter;
 				lastTempIndex += 1; // Increase length by one
 			}
-			else if (raw_string[i] == '-') {
+			else if (raw_string[i] == '-' && lastTempIndex > 1) {
 				temp[lastTempIndex] = raw_string[i];
 				lastTempIndex += 1; // Increase length by one
 			}
@@ -567,5 +567,107 @@ namespace basic {
 			return -1;
 	}
 #pragma endregion IndexedList
+
+#pragma region AuxiliaryVerb
+	int32 AuxiliaryVerb::N_Parse(const char* word_chars, const uint8& length) const {
+		// return -1 : no verb found
+		// return > -1 : id of the verb
+
+		if (length < 5) // i.e  "n't"
+			return -1;
+
+		// ends with n't
+		if (word_chars[length - 3] == 'n' && word_chars[length - 2] == '\'' && word_chars[length - 1] == 't') {
+			char temp[WORD_CHAR_SIZE];
+			util::MemCpy(temp, word_chars, length - 2); // copy chars except last 2 char "'t"
+
+			if (util::IsSameArray(temp, "can", 3))  // can has an exception
+				return 0;
+
+			uint8 char_length = length - 3;
+
+			// Search for verb
+			for (uint32 i = 0; i < amount; i++) { // Check all words
+				if (char_length == words[i].length) { // If they have same length
+					if (util::IsSameArray(temp, words[i].chars, char_length)) {
+						return i;
+					}
+				}
+			}
+		}
+
+		return -1;
+	}
+
+	int8 AuxiliaryVerb::ParseWord(const String& raw_string, TypeAndSuffixes& word, String& out_string, const bool write_result) const {
+		// return  1  : word found
+		// return -1  : The word has not found
+		// return -2  : Character size exceeds WORD_CHAR_SIZE size
+		// return -3  : Character size smaller than 1 characters. Empty.
+		// return -4  : There is some character which is not alphabetic
+
+		char temp[WORD_CHAR_SIZE];
+		uint8 lastIndex = 0;
+
+		for (uint32 i = 0; i < raw_string.Length(); i++) { // Read all chars
+			char letter = util::ToLowerCase(raw_string[i]);
+			if (letter != 0) {
+				temp[lastIndex] = letter;
+				lastIndex += 1; // Increase length by one
+			}
+			else if (raw_string[i] == '-' || raw_string[i] == '\'') {
+				temp[lastIndex] = raw_string[i];
+				lastIndex += 1; // Increase length by one
+			}
+			else if (raw_string[i] == ' ' || raw_string[i] == '\t') {
+				continue;
+			}
+			else if (raw_string[i] == '#' || raw_string[i] == '\0' || raw_string[i] == '\n') {
+				break;
+			}
+			else {
+				return -4; // There is some charachter which is not alphabetic
+			}
+		}
+
+		if (lastIndex > WORD_CHAR_SIZE) { // Size control
+			return -2;
+		}
+		else if (lastIndex < 1) { // Size control
+			return -3;
+		}
+
+		int32 id = FindWord(temp, lastIndex);
+		int32 id_not_parse = N_Parse(temp, lastIndex);
+
+		if (id > -1) {
+			word.suffixes.push_back(8);
+		}
+		else if (id_not_parse > -1) {
+			word.suffixes.push_back(WordType::Negative);
+		}
+
+		if (write_result) {
+			if (id != -1) {
+				out_string += "1. ";
+				out_string.Append(words[id].chars, words[id].length);
+				out_string += '\n';
+				out_string.EndString();
+			}
+			if (id_not_parse != -1) {
+				out_string += "\x1b[95m[Infectional Auxiliary Verb (-n't)]: \x1b[0m\n";
+				out_string += "1. ";
+				out_string.Append(words[id_not_parse].chars, words[id_not_parse].length);
+				out_string += '\n';
+				out_string.EndString();
+			}
+		}
+
+		if (id + id_not_parse > -2)
+			return 1;
+		else
+			return -1;
+	}
+#pragma endregion AuxiliaryVerb
 
 }

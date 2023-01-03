@@ -6,5 +6,7 @@ yippee
 hi
 oh
 ah
+ha
+ha-ha
 chop
 hooray

@@ -2,7 +2,7 @@
 #include "misc/util.hpp"
 
 #define TOKEN_INCR_COEF 2
-#define SENTENCE_DEBUG 1
+#define SENTENCE_DEBUG 0
 
 namespace tkn {
 

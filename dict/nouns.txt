@@ -35,16 +35,12 @@ Quiz ,  Quizzes
 Index ,  Indices
 ########## DATA BASE ##########
 'hood
-a
 a'man
 a-bomb
 a-horizon
 a-line
 a-list
 a-team
-a/c
-aa
-aaa
 aachen
 aalborg
 aalii
@@ -1984,8 +1980,6 @@ amyotrophia
 amyotrophy
 amytal
 amyxia
-an
-ana
 anabantidae
 anabaptism
 anabaptist
@@ -4154,7 +4148,6 @@ aztreonam
 azure
 azurite
 azymia
-b
 b-girl
 b-horizon
 b-meson
@@ -22310,13 +22303,10 @@ gyroscope
 gyrostabiliser
 gyrostabilizer
 gyrus
-gywn
-h
+gyw
 h-bomb
-ha
 ha'p'orth
 ha'penny
-ha-ha
 haart
 haastia
 habacuc
@@ -22709,7 +22699,6 @@ handout
 handover
 handrail
 handrest
-hands
 handsaw
 handsbreadth
 handset
@@ -23029,7 +23018,6 @@ hcfc
 hcg
 hdl
 hdtv
-he
 he-goat
 he-huckleberry
 he-man
@@ -27492,6 +27480,7 @@ keynote
 keypad
 keystone
 keystroke
+keyword
 kg
 kgb
 khabarovsk
@@ -31586,6 +31575,7 @@ medellin
 medevac
 medfly
 medford
+media
 mediacy
 median
 mediant
@@ -45359,6 +45349,7 @@ sciaridae
 sciatica
 scid
 science
+science-fiction
 scientist
 scientology
 scilla
@@ -51942,6 +51933,7 @@ thiothixene
 thiouracil
 third
 third-dimensionality
+third-person
 third-rater
 thirst
 thirster

@@ -48,7 +48,7 @@ namespace verb {
 			delete[] irrVerbCollection.verbs;
 	}
 
-	int8 VerbHandler::DeleteAll() {
+	int8 VerbHandler::Free() {
 		// 0 : deleted successfully
 		// Delete each verb heap
 		for (int row = 0; row < VERB_ROW; row++) {
@@ -339,6 +339,10 @@ namespace verb {
 				}
 				else if (util::DoesContain("S0", &line[i + 1])) { // S0 : S except none
 					exception_data.s = None;
+					i += 2;
+				}
+				else if (util::DoesContain("S1", &line[i + 1])) { // U0 : don't check uniqueness
+					exception_data.s = Suffix_es;
 					i += 2;
 				}
 				else if (util::DoesContain("DL", &line[i + 1])) { // DL : Double last char
@@ -766,11 +770,15 @@ namespace verb {
 			// If the input ends with d
 			exceptions.ed = Suffix_d; // EndsWith_e
 			result += FindWithException(verb_chars, lenght - 1, exceptions, out_verbs); // If verbs ends with -e
+			if (result > 0) // If the verb found return
+				return result;
 
 			// If the input ends with -ed
 			if (verb_chars[lenght - 2] == 'e') { // when the last 2 chars is -ed
 				exceptions.ed = None;
 				result += FindWithException(verb_chars, lenght - 2, exceptions, out_verbs); // If verbs ends with None
+				if (result > 0) // If the verb found return
+					return result;
 
 				if (lenght > 2 && verb_chars[lenght - 3] == 'i') {
 					char tempVerb[VERB_CHAR_SIZE]; // Creating a temporary space for verb 
@@ -779,6 +787,8 @@ namespace verb {
 
 					exceptions.ed = Suffix_0y_ied; //EndsWith_Cy
 					result += FindWithException(tempVerb, lenght - 2, exceptions, out_verbs); // If verbs ends with  Cy
+					if (result > 0) // If the verb found return
+						return result;
 				}
 				else if (lenght > 5 && !util::IsVowel(verb_chars[lenght - 3])) {
 					// verb lenght has to be bigger than 5 the 3rd to last has to be consonant
@@ -786,6 +796,8 @@ namespace verb {
 					if (verb_chars[lenght - 3] == verb_chars[lenght - 4]) { // If the 3rd to last and 4th chars are same
 						exceptions.ed = Suffix_X_ed;
 						result += FindWithException(verb_chars, lenght - 3, exceptions, out_verbs); // If verbs ends with consonants + Vovel + Consonant
+						if (result > 0) // If the verb found return
+							return result;
 					}
 				}
 			}
@@ -808,7 +820,8 @@ namespace verb {
 
 				exceptions.ing = None;
 				result += FindWithException(verb_chars, lenght - 3, exceptions, out_verbs); // If verbs ends with none
-
+				if (result > 0) // If the verb found return
+					return result;
 				if (!util::IsVowel(verb_chars[lenght - 4])) { // If the 4th to last char is Consonant
 
 					{ // If the original verb ends with -e
@@ -817,11 +830,15 @@ namespace verb {
 
 						exceptions.ing = Suffix_0e_ing; // EndsWith_Ce
 						result += FindWithException(tempVerb, lenght - 2, exceptions, out_verbs); // If verbs ends with Cy
+						if (result > 0) // If the verb found return
+							return result;
 					}
 
 					if (lenght > 6 && verb_chars[lenght - 4] == verb_chars[lenght - 5]) { // If the input str ends with double last char
 						exceptions.ing = Suffix_X_ing;
 						result += FindWithException(verb_chars, lenght - 4, exceptions, out_verbs); // If verbs ends with consonants + Vovel + Consonant
+						if (result > 0) // If the verb found return
+							return result;
 					}
 				}
 
@@ -831,6 +848,8 @@ namespace verb {
 
 					exceptions.ing = Suffix_0ie_ying; // EndsWith_ie
 					result += FindWithException(tempVerb, lenght - 2, exceptions, out_verbs); // If verbs ends with  Cy
+					if (result > 0) // If the verb found return
+						return result;
 				}
 			}
 		}
@@ -850,11 +869,15 @@ namespace verb {
 				{
 					exceptions.s = None;
 					result += FindWithException(verb_chars, lenght - 1, exceptions, out_verbs);
+					if (result > 0) // If the verb found return
+						return result;
 				}
 				if (verb_chars[lenght - 2] == 'e') { // input str ends with -es
 					{
 						exceptions.s = Suffix_es;
 						result += FindWithException(verb_chars, lenght - 2, exceptions, out_verbs);
+						if (result > 0) // If the verb found return
+							return result;
 					}
 					if (verb_chars[lenght - 3] == 'i') { // input str ends with -ies
 						char tempVerb[VERB_CHAR_SIZE]; // Creating a temporary space for verb
@@ -863,15 +886,21 @@ namespace verb {
 						exceptions.s = Suffix_0y_ies; // setting the suffix type
 
 						result += FindWithException(tempVerb, lenght - 2, exceptions, out_verbs);
+						if (result > 0) // If the verb found return
+							return result;
 					}
 					if (lenght > 4) {
 						if (verb_chars[lenght - 3] == 's' && verb_chars[lenght - 4] == 's') { // input str ends with -sses
 							exceptions.s = Suffix_ses;
 							result += FindWithException(verb_chars, lenght - 3, exceptions, out_verbs);
+							if (result > 0) // If the verb found return
+								return result;
 						}
 						else if (verb_chars[lenght - 3] == 'z' && verb_chars[lenght - 4] == 'z') { // input str ends with -zzes
 							exceptions.s = Suffix_zes;
 							result += FindWithException(verb_chars, lenght - 3, exceptions, out_verbs);
+							if (result > 0) // If the verb found return
+								return result;
 						}
 					}
 				}

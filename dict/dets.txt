@@ -1,0 +1,25 @@
+# the definite article
+the
+# Possessives
+my
+your
+his
+her
+its
+our
+their
+whose
+# Demonstratives
+this
+that
+these
+those
+# General Determiners
+a
+an
+any
+another
+other
+# Interrogative Determiners
+which
+what

@@ -2,23 +2,22 @@
 #define WORDS_HPP
 
 #include <vector>
-#include "simple_types.hpp"
 
 enum WordType : uint8 {
 	Undefined,
 	Noun,
 	Verb,
+	AuxiliaryVerb,
 	Pronoun,
 	Adverb,
 	Adjective,
 	Preposition,
 	Conjunction,
 	Interjection,
-
 	Determiner,
-	Quantifier,
 	Punctuation,
-	IndefiniteArticle,
+
+	Negative
 };
 
 struct TypeAndSuffixes

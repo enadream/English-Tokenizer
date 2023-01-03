@@ -213,13 +213,13 @@ uint32 String::Length() const {
 }
 
 String& String::SetLength(uint32 length_) {
+#if DEBUG_STRING
 	if (length_ > capacity) {// If the capacity is not enough
 		length = capacity; // set length as the capacity
-#if DEBUG_STRING
 		printf("[DEBUG]:The length exceeds capacity!");
-#endif
 	}
 	else
+#endif
 		length = length_; // set length
 	return *this;
 }
@@ -265,7 +265,7 @@ const char& String::operator[](uint32 index) const {
 	}
 #endif
 	return p_data[index];
-}
+	}
 
 char& String::operator[](uint32 index) {
 #if DEBUG_STRING
@@ -275,7 +275,7 @@ char& String::operator[](uint32 index) {
 	}
 #endif
 	return p_data[index];
-}
+	}
 
 
 bool String::operator==(const char* str) const {

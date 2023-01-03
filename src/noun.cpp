@@ -4,7 +4,7 @@
 
 #define MIN_NOUN_SIZE 32  // 32 default
 #define NOUN_ROW 26
-#define NOUN_COL 28
+#define NOUN_COL 27
 #define NOUN_SIZE_INC_COEF 4 // 4 default
 
 namespace noun {
@@ -23,11 +23,8 @@ namespace noun {
 
 				if (col < 26)
 					nounLists[row * NOUN_COL + col].indicator[1] = 'a' + col;
-				else if (col == 26)
+				else // i.e x-ray
 					nounLists[row * NOUN_COL + col].indicator[1] = '-';
-				else { // col 27 reserved for one char nouns i.e a
-					nounLists[row * NOUN_COL + col].indicator[1] = ' ';
-				}
 
 
 			}
@@ -49,7 +46,7 @@ namespace noun {
 			delete[] irrNounList.nouns;
 	}
 
-	void NounHandler::DeleteAll() {
+	void NounHandler::Free() {
 		for (int row = 0; row < NOUN_ROW; row++) {
 			for (int col = 0; col < NOUN_COL; col++) {
 				if (nounLists[row * NOUN_COL + col].nouns != nullptr) {
@@ -115,36 +112,69 @@ namespace noun {
 		noun.s = None;
 	}
 
-	uint8 NounHandler::S_Parser(const char* noun_chars, const uint8& lenght, std::vector<Noun*>& out_nouns) const {
+	uint8 NounHandler::S_Parser(const char* noun_chars, const uint8& length, std::vector<Noun*>& out_nouns) const {
 		// None, EndsWith_Cy, EndsWith_ss, EndsWith_zz, EndsWith_ch, EndsWith_sh, EndsWith_s, EndsWith_z, EndsWith_x, EndsWith_o
 		// -s		-(-y)ies	-es			   -es			-es			-es			 -ses		 -zes	,	 -es    ,	-es
 
 		uint8 foundNouns = 0;
-		if (lenght > 2) { // the input text has to be at least 3 chars
-			if (noun_chars[lenght - 1] == 's') { // input str ends with -s
-				foundNouns += FindWithException(noun_chars, lenght - 1, None, out_nouns);
+		if (length > 2) { // the input text has to be at least 3 chars
+			if (noun_chars[length - 1] == 's') { // input str ends with -s
+				foundNouns += FindWithException(noun_chars, length - 1, None, out_nouns);
+				if (foundNouns > 0) // Return if found
+					return foundNouns;
 
-				if (noun_chars[lenght - 2] == 'e') { // input str ends with -es
+				if (noun_chars[length - 2] == 'e') { // input str ends with -es
 					{
-						foundNouns += FindWithException(noun_chars, lenght - 2, Suffix_es, out_nouns);
+						foundNouns += FindWithException(noun_chars, length - 2, Suffix_es, out_nouns);
+						if (foundNouns > 0) // Return if found
+							return foundNouns;
 					}
-					if (noun_chars[lenght - 3] == 'i') { // input str ends with -ies
+					if (noun_chars[length - 3] == 'i') { // input str ends with -ies
 						char tempNoun[NOUN_CHAR_SIZE]; // Creating a temporary space for noun
-						util::MemCpy(tempNoun, noun_chars, lenght - 3); // copying charachters excluding last 3
-						tempNoun[lenght - 3] = 'y'; // adding e to the last char of the noun 
+						util::MemCpy(tempNoun, noun_chars, length - 3); // copying charachters excluding last 3
+						tempNoun[length - 3] = 'y'; // adding e to the last char of the noun 
 
 						// exceptions.s = Suffix_0y_ies; // setting the suffix type
-						foundNouns += FindWithException(tempNoun, lenght - 2, Suffix_0y_ies, out_nouns);
+						foundNouns += FindWithException(tempNoun, length - 2, Suffix_0y_ies, out_nouns);
+						if (foundNouns > 0) // Return if found
+							return foundNouns;
 					}
-					if (lenght > 4) {
-						if (noun_chars[lenght - 3] == 's' && noun_chars[lenght - 4] == 's') { // input str ends with -sses
-							foundNouns += FindWithException(noun_chars, lenght - 3, Suffix_ses, out_nouns);
+					if (length > 4) {
+						if (noun_chars[length - 3] == 's' && noun_chars[length - 4] == 's') { // input str ends with -sses
+							foundNouns += FindWithException(noun_chars, length - 3, Suffix_ses, out_nouns);
+							if (foundNouns > 0) // Return if found
+								return foundNouns;
 						}
-						else if (noun_chars[lenght - 3] == 'z' && noun_chars[lenght - 4] == 'z') { // input str ends with -zzes
-							foundNouns += FindWithException(noun_chars, lenght - 3, Suffix_zes, out_nouns);
+						else if (noun_chars[length - 3] == 'z' && noun_chars[length - 4] == 'z') { // input str ends with -zzes
+							foundNouns += FindWithException(noun_chars, length - 3, Suffix_zes, out_nouns);
+							if (foundNouns > 0) // Return if found
+								return foundNouns;
 						}
 					}
 				}
+			}
+		}
+
+		return foundNouns;
+	}
+
+	uint8 NounHandler::Pos_Parser(const char* noun_chars, const uint8& length, std::vector<Noun*>& out_nouns) const {
+		// Return 0: no result
+		// Return 1: is or possessive
+		// Return 2: plural + possessive
+
+		uint8 foundNouns = 0;
+
+		if (length > 3) {
+			if (noun_chars[length - 2] == '\'' && noun_chars[length - 1] == 's') { // ends with 's, is or possesive
+				foundNouns = FindNoun(noun_chars, length - 2, &out_nouns); // Find noun
+				if (foundNouns > 0)
+					return 1;
+			}
+			else if (noun_chars[length - 1] == '\'') { // plural + possesive 
+				foundNouns = S_Parser(noun_chars, length - 1, out_nouns); // Plural possesesive
+				if (foundNouns > 0)
+					return 2;
 			}
 		}
 
@@ -213,6 +243,7 @@ namespace noun {
 		// return 1  :  The word added successfully
 		// return -1  : There is some charachter which is not alphabetic
 		// return -2  : Character size exceeds WORD_CHAR_SIZE size
+		// return -3  : Character size smaller than 2 chars
 		// return -4  : The verb is already exist
 
 		char temp[NOUN_CHAR_SIZE];
@@ -247,8 +278,11 @@ namespace noun {
 				if (lastTempIndex > NOUN_CHAR_SIZE) { // Size control
 					return -2;
 				}
-				else if (lastTempIndex < 1) { // Size control
+				else if (lastTempIndex == 0) { // empty line
 					return 2;
+				}
+				else if (lastTempIndex < 2) { // Size control
+					return -3;
 				}
 				if (FindNoun(temp, lastTempIndex) != 0) { // Existence control
 					return -4;
@@ -270,8 +304,11 @@ namespace noun {
 		if (lastTempIndex > NOUN_CHAR_SIZE) { // Size control
 			return -2;
 		}
-		else if (lastTempIndex < 1) { // Size control
+		else if (lastTempIndex == 0) { // empty line
 			return 2;
+		}
+		else if (lastTempIndex < 2) { // Size control
+			return -3;
 		}
 
 		if (commaAppeared) {
@@ -293,15 +330,11 @@ namespace noun {
 		int row = noun_chars[0] - 'a'; // 97 means 'a' in ASCII code
 		int col;
 
-		if (str_length > 1)
-		{
-			if (noun_chars[1] == '-')
-				col = 26; // 26 reserved for -
-			else
-				col = noun_chars[1] - 'a'; // 97 means 'a' in ASCII code
-		}
+
+		if (noun_chars[1] == '-')
+			col = 26; // 26 reserved for -
 		else
-			col = 27; // 27 reserved for one char nouns
+			col = noun_chars[1] - 'a'; // 97 means 'a' in ASCII code
 
 		int id = row * NOUN_COL + col;
 
@@ -420,7 +453,7 @@ namespace noun {
 				util::IntToStr(exceedsSizeLines, lineNumber);
 				exceedsSizeLines += ',';
 				break;
-			case -3: // Character size smaller than 1 characters
+			case -3: // Character size smaller than 2 characters
 				charSizeSmaller1++;
 				util::IntToStr(sizeSmaller1CharLines, lineNumber);
 				sizeSmaller1CharLines += ',';
@@ -466,14 +499,11 @@ namespace noun {
 
 		int8 foundAmount = 0;
 
-		if (length > 1) {
-			if (word_chars[1] == '-')
-				col = 26; // 26 reserved for -
-			else
-				col = word_chars[1] - 'a'; // 97 means 'a' in ASCII code
-		}
+		if (word_chars[1] == '-')
+			col = 26; // 26 reserved for -
 		else
-			col = 27; // 27 reserved for one char nouns
+			col = word_chars[1] - 'a'; // 97 means 'a' in ASCII code
+
 
 		int32 id = row * NOUN_COL + col;
 
@@ -498,14 +528,10 @@ namespace noun {
 		int row = noun_chars[0] - 'a'; // 97 means 'a' in ASCII code
 		int col;
 
-		if (length > 1) {
-			if (noun_chars[1] == '-')
-				col = 26; // 26 reserved for -
-			else
-				col = noun_chars[1] - 'a'; // 97 means 'a' in ASCII code
-		}
+		if (noun_chars[1] == '-')
+			col = 26; // 26 reserved for -
 		else
-			col = 27; // 27 reserved for one char nouns
+			col = noun_chars[1] - 'a'; // 97 means 'a' in ASCII code
 
 		int32 id = row * NOUN_COL + col;
 		uint8 foundAmount = 0;
@@ -560,7 +586,7 @@ namespace noun {
 				noun_chars[length++] = currentCh;
 			else if (raw_string[i] == ' ' || raw_string[i] == '\t')
 				continue;
-			else if (raw_string[i] == '-') { // If the charachter is hyphen
+			else if (raw_string[i] == '-' || raw_string[i] == '\'') { // If the charachter is hyphen or single quote 
 				if (i == 0)
 					return -3; // First character cannot be hyphen
 				else
@@ -580,6 +606,8 @@ namespace noun {
 		uint8 foundAmount = FindNoun(noun_chars, length, &found_nouns);
 		// Search if the noun has -s
 		uint8 foundAmountSParser = S_Parser(noun_chars, length, found_nouns);
+		// Search if ends with ' or 's
+		uint8 foundQuotationMark = Pos_Parser(noun_chars, length, found_nouns);
 
 		// Save information to word
 		if (foundAmount > 0) {
@@ -593,6 +621,19 @@ namespace noun {
 		if (foundAmountSParser > 0) {
 			for (uint8 i = 0; i < foundAmountSParser; i++) {
 				word.suffixes.push_back(S_Parsed);
+			}
+		}
+		else if (foundQuotationMark > 0) {
+			switch (foundQuotationMark)
+			{
+			case 1:
+				word.suffixes.push_back(CliticS);
+				break;
+			case 2:
+				word.suffixes.push_back(PluralPoss);
+				break;
+			default:
+				break;
 			}
 		}
 
@@ -636,9 +677,48 @@ namespace noun {
 					writeNoun(*found_nouns[id], id);
 				}
 			}
+			// Write clitic s
+			else if (foundQuotationMark > 0) {
+				uint16 id = foundAmount; // Accessing the last element in found nouns
+
+				if (foundQuotationMark == 1) {
+					out_string += "\x1b[95m[Infectional Noun ('s)]: \x1b[0m\n";
+					writeNoun(*found_nouns[id], id);
+				}
+				else {
+					out_string += "\x1b[95m[Infectional Plural Noun Possessive (s')]: \x1b[0m";
+					switch (found_nouns[id]->s)
+					{
+					case None:
+						out_string.Append(found_nouns[id]->chars, found_nouns[id]->length);
+						out_string += " + s'\n";
+						break;
+					case Suffix_es:
+						out_string.Append(found_nouns[id]->chars, found_nouns[id]->length);
+						out_string += " + es'\n";
+						break;
+					case Suffix_ses:
+						out_string.Append(found_nouns[id]->chars, found_nouns[id]->length);
+						out_string += " + ses'\n";
+						break;
+					case Suffix_zes:
+						out_string.Append(found_nouns[id]->chars, found_nouns[id]->length);
+						out_string += " + zes'\n";
+						break;
+					case Suffix_0y_ies:
+						out_string.Append(found_nouns[id]->chars, found_nouns[id]->length);
+						out_string += "(-y) + ies'\n";
+						break;
+					default:
+						Log::Error("S parser returns a value that doesn't exist in switch");
+						return -1;
+					}
+					writeNoun(*found_nouns[id], id);
+				}
+			}
 		}
 
-		if (foundAmount + foundAmountSParser > 0) {
+		if (foundAmount + foundAmountSParser + foundQuotationMark > 0) {
 			word.type = WordType::Noun;
 			return 1;
 		}
