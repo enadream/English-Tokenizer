@@ -3797,7 +3797,7 @@ fossilise
 fossilize
 foster
 foul
-found
+found /U0
 founder
 fowl
 fox
@@ -5541,7 +5541,7 @@ occidentalize
 occlude
 occult
 occupy
-occur
+occur /DL
 odorize
 odourise
 off

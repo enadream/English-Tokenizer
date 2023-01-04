@@ -15,7 +15,6 @@
 
 namespace handle {
 
-
 	class MainHandler {
 	private: // variables
 		noun::NounHandler noun;
@@ -49,7 +48,7 @@ namespace handle {
 		MainHandler() = default;
 		void Read(const WordType type, String& dir);
 		void Delete(const WordType type);
-		void ParseMultithread(const String& raw_word, const bool print_result, WordToken& word);
+		void ParseMultiple(const String& raw_word, const bool print_result, WordToken& word);
 		void ParseWithType(const WordType type, const String& str);
 		void ParseSentence(const String& str);
 		void PrintResult(const WordType type, const int32& result, const String& str);

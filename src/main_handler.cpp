@@ -48,7 +48,7 @@ namespace handle {
 
 			if (tempLine.Length() > 0) {
 				// Parse each line
-				ParseMultithread(tempLine, false, word);
+				ParseMultiple(tempLine, false, word);
 				// Write word to file
 				util::IntToStr(out_str, lineNumber);
 				out_str.Append("- ", 2);
@@ -215,7 +215,7 @@ namespace handle {
 		}
 	}
 
-	void MainHandler::ParseMultithread(const String& raw_word, const bool print_result, WordToken& word) { // Multithread parser
+	void MainHandler::ParseMultiple(const String& raw_word, const bool print_result, WordToken& word) { // Multithread parser
 		util::Array<int32, 11> result;
 		String outStrs[result.GetSize()];
 
@@ -284,7 +284,7 @@ namespace handle {
 				words.push_back(WordToken());
 				words.back().data = &tokenize.sentences[i][j];
 				// Parse token
-				ParseMultithread(tokenize.sentences[i][j], false, words.back());
+				ParseMultiple(tokenize.sentences[i][j], false, words.back());
 			}
 			// Words to string
 			out_str += "\n\x1b[38;5;198m[SENTENCE ";

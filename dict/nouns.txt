@@ -34,7 +34,6 @@ Tuna ,  Tuna
 Quiz ,  Quizzes
 Index ,  Indices
 ########## DATA BASE ##########
-'hood
 a'man
 a-bomb
 a-horizon

@@ -28,7 +28,7 @@ void Ecli::Start() {
 
 	auto printHeader = []() {
 		SetColor(3);
-		std::cout << "__________________ Welcome to the ChatBot (V0.70 @enadream) __________________\n\n" << std::endl;
+		std::cout << "__________________ Welcome to the ChatBot (V0.71 @enadream) __________________\n\n" << std::endl;
 		SetColor(7);
 	};
 
@@ -175,7 +175,7 @@ void Ecli::Start() {
 			}
 			else {
 				WordToken a;
-				mainHandler.ParseMultithread(params[0].value, true, a);
+				mainHandler.ParseMultiple(params[0].value, true, a);
 			}
 
 			std::cout << "\n";

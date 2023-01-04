@@ -1,6 +1,6 @@
 /*
 *	Eren ALPAR enadream.com
-*   APP VERSION 0.70
+*   APP VERSION 0.71
 *	C++ VERSION 17
 */
 
