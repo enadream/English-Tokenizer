@@ -26,8 +26,10 @@ public:
 	~String(); // Destructor
 
 	String(const char* str); // Start with char array
+	String(const String& string); // Copy constructor
 	explicit String(const char* str, uint32 length_); // Start with char array but limited length
-	explicit String(const String& string); // Copy constructor
+	
+	
 	explicit String(String&& old_str) noexcept; // Move semantics
 	explicit String(const uint32& capacity_); // Start with capacity
 	explicit String(const uint32& capacity_, bool IsExactSize);

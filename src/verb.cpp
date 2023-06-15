@@ -75,6 +75,7 @@ namespace verb {
 	}
 
 
+
 	void VerbHandler::MultipleVerbAdder(const char* file, const uint64& size) { // This function add multiple verbs to ram
 		uint32 _successfull = 0;
 		uint32 _nonAlphabetic = 0;
@@ -748,6 +749,7 @@ namespace verb {
 
 		if (foundAmount + foundAmountEd + foundAmountIng + foundAmountS > 0) {
 			word.type = WordType::Verb;
+			word.adrs = (char*)found_verbs[0];
 			return 1;
 		}
 		else
@@ -1042,6 +1044,20 @@ namespace verb {
 		}
 
 		out_string.EndString();
+	}
+
+	Verb* VerbHandler::FindBaseVerb(Verb* verb) {
+
+		for (uint16 i = 0; i < irrVerbCollection.amount; i++) {
+			if (irrVerbCollection.verbs[i].pastSimple == verb) {
+				return irrVerbCollection.verbs[i].baseForm;
+			}
+			else if (irrVerbCollection.verbs[i].pastSimple_2 == verb) {
+				return irrVerbCollection.verbs[i].baseForm;
+			}
+		}
+
+		return nullptr;
 	}
 
 	int8 VerbHandler::UpdateIrrVerbAdress(Verb& new_address, const Verb& old_adress) {

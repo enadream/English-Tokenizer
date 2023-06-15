@@ -491,7 +491,7 @@ namespace basic {
 		}
 	}
 
-	SimpleWord* IndexedList::FindWord(const char* word_chars, const uint8& str_length) {
+	SimpleWord* IndexedList::FindWord(const char* word_chars, const uint8& str_length) const {
 		// Detect the index
 		uint32 row = word_chars[0] - 'a';
 		uint32 col;
@@ -568,6 +568,222 @@ namespace basic {
 	}
 #pragma endregion IndexedList
 
+
+#pragma region Adjective
+	// Comparative
+	int8 Adjective::Com_Parse(const char* word_chars, const uint8& length, SimpleWord*& out_word) const {
+		// -1 : not found
+		// 1 found with base from -er
+		// 2 found with doubled last char +xer 
+		// 3 found with -ier
+		// 4 found with -r
+
+		if (length < 4)
+			return -1;
+
+		SimpleWord* result = nullptr;
+
+		if (word_chars[length - 2] == 'e' && word_chars[length - 1] == 'r') { // If ends with -er
+			// Base form + er
+			result = FindWord(word_chars, length - 2);
+
+			if (result) {
+				out_word = result;
+				return 1;
+			}
+
+			// Double last char ie. bigger
+			if (word_chars[length - 4] == word_chars[length - 3]) {
+				result = FindWord(word_chars, length - 3);
+				if (result) {
+					out_word = result;
+					return 2;
+				}
+			}
+
+			// Ends with y and add +ier
+			if (word_chars[length - 3] == 'i') {
+				char temp[WORD_CHAR_SIZE];
+				util::MemCpy(temp, word_chars, length - 3); // copy chars except last 3 char "ier"
+				temp[length - 3] = 'y';
+
+				result = FindWord(temp, length - 2);
+				if (result) {
+					out_word = result;
+					return 3;
+				}
+			}
+
+			// Ends with e and just add +r
+			result = FindWord(word_chars, length - 1);
+
+			if (result) {
+				out_word = result;
+				return 4;
+			}
+		}
+
+		return -1;
+	}
+
+	// Comparative
+	int8 Adjective::Sup_Parse(const char* word_chars, const uint8& length, SimpleWord*& out_word) const {
+		// -1 : not found
+		// 1 found with base from -est
+		// 2 found with doubled last char +xest
+		// 3 found with -iest
+		// 4 found with -st
+
+		if (length < 5)
+			return -1;
+
+		SimpleWord* result = nullptr;
+
+		if (word_chars[length - 3] == 'e' && word_chars[length - 2] == 's' && word_chars[length - 1] == 't') { // If ends with -er
+			// Base form + est
+			result = FindWord(word_chars, length - 3);
+
+			if (result) {
+				out_word = result;
+				return 1;
+			}
+
+			// Double last char ie. biggest
+			if (word_chars[length - 5] == word_chars[length - 4]) {
+				result = FindWord(word_chars, length - 4);
+				if (result) {
+					out_word = result;
+					return 2;
+				}
+			}
+
+			// Ends with y and add +iest
+			if (word_chars[length - 4] == 'i') {
+				char temp[WORD_CHAR_SIZE];
+				util::MemCpy(temp, word_chars, length - 4); // copy chars except last 3 char "iest"
+				temp[length - 4] = 'y';
+
+				result = FindWord(temp, length - 3);
+				if (result) {
+					out_word = result;
+					return 3;
+				}
+			}
+
+			// Ends with e and just add +st
+			result = FindWord(word_chars, length - 2);
+
+			if (result) {
+				out_word = result;
+				return 4;
+			}
+		}
+	}
+
+	int8 Adjective::ParseWord(const String& raw_string, TypeAndSuffixes& word, String& out_string, const bool write_result)  const {
+		// return  1  : word found
+		// return -1  : The word has not found
+		// return -2  : Character size exceeds WORD_CHAR_SIZE size
+		// return -3  : Character size smaller than 2 characters. Empty.
+		// return -4  : There is some character which is not alphabetic
+
+		char temp[WORD_CHAR_SIZE];
+		uint8 lastTempIndex = 0;
+
+		for (uint32 i = 0; i < raw_string.Length(); i++) { // Read all chars
+			char letter = util::ToLowerCase(raw_string[i]);
+			if (letter != 0) {
+				temp[lastTempIndex] = letter;
+				lastTempIndex += 1; // Increase length by one
+			}
+			else if (raw_string[i] == '-' && lastTempIndex > 1) {
+				temp[lastTempIndex] = raw_string[i];
+				lastTempIndex += 1; // Increase length by one
+			}
+			else if (raw_string[i] == ' ' || raw_string[i] == '\t') {
+				continue;
+			}
+			else if (raw_string[i] == '#' || raw_string[i] == '\0' || raw_string[i] == '\n') {
+				break;
+			}
+			else {
+				return -4; // There is some charachter which is not alphabetic
+			}
+		}
+
+		if (lastTempIndex > WORD_CHAR_SIZE) { // Size control
+			return -2;
+		}
+		else if (lastTempIndex < 2) { // Size control
+			return -3;
+		}
+
+
+		SimpleWord* found_word = nullptr;
+		int8 com_res = -1;
+		int8 sup_res = -1;
+
+		if (found_word = FindWord(temp, lastTempIndex)) { // Found adjective
+			word.suffixes.push_back(SuffixType::BaseForm);
+		}
+		else if ((com_res = Com_Parse(temp, lastTempIndex, found_word)) > -1) { // Found adjective as comparative
+			word.suffixes.push_back(SuffixType::adj_er);
+		}
+		else if ((sup_res = Sup_Parse(temp, lastTempIndex, found_word)) > -1) { // Found adjective as superlative
+			word.suffixes.push_back(SuffixType::adj_est);
+		}
+
+		if (found_word != nullptr) {
+			if (write_result) {
+
+				if (com_res > -1 || sup_res > -1) {
+					switch (com_res)
+					{
+					case 1:
+						out_string += "\x1b[95m[Infectional Adjective (er)]: \x1b[0m\n";
+						break;
+					case 2:
+						out_string += "\x1b[95m[Infectional Adjective ((x)er)]: \x1b[0m\n";
+						break;
+					case 3:
+						out_string += "\x1b[95m[Infectional Adjective ((-y)+ier)]: \x1b[0m\n";
+						break;
+					case 4:
+						out_string += "\x1b[95m[Infectional Adjective (+r)]: \x1b[0m\n";
+						break;
+					}
+
+					switch (sup_res)
+					{
+					case 1:
+						out_string += "\x1b[95m[Infectional Adjective (est)]: \x1b[0m\n";
+						break;
+					case 2:
+						out_string += "\x1b[95m[Infectional Adjective ((x)est)]: \x1b[0m\n";
+						break;
+					case 3:
+						out_string += "\x1b[95m[Infectional Adjective ((-y)+iest)]: \x1b[0m\n";
+						break;
+					case 4:
+						out_string += "\x1b[95m[Infectional Adjective (st)]: \x1b[0m\n";
+						break;
+					}
+
+				}
+
+				out_string += "1. ";
+				out_string.Append(found_word->chars, found_word->length);
+				out_string += '\n';
+				out_string.EndString();
+			}
+			return 1;
+		}
+		else
+			return -1;
+	}
+
+#pragma endregion Adjective
+
 #pragma region AuxiliaryVerb
 	int32 AuxiliaryVerb::N_Parse(const char* word_chars, const uint8& length) const {
 		// return -1 : no verb found
@@ -641,10 +857,10 @@ namespace basic {
 		int32 id_not_parse = N_Parse(temp, lastIndex);
 
 		if (id > -1) {
-			word.suffixes.push_back(8);
+			word.suffixes.push_back(SuffixType::BaseForm);
 		}
 		else if (id_not_parse > -1) {
-			word.suffixes.push_back(WordType::Negative);
+			word.suffixes.push_back(SuffixType::Negative);
 		}
 
 		if (write_result) {
@@ -670,4 +886,233 @@ namespace basic {
 	}
 #pragma endregion AuxiliaryVerb
 
+
+#pragma region Pronoun
+	int8 Pronoun::M_Parse(const char* word_chars, const uint8& length) const {
+		// return -1 : no pronoun found
+		// return > -1 : id of the pronoun
+
+		if (length < 3) // i.e  "i'm"
+			return -1;
+
+		// ends with i'm
+		if (word_chars[length - 3] == 'i' && word_chars[length - 2] == '\'' && word_chars[length - 1] == 'm') {
+			// Search for pronoun
+			for (uint32 i = 0; i < amount; i++) { // Check all words
+				if (1 == words[i].length) { // If they have same length
+					if (util::IsSameArray("i", words[i].chars, 1)) {
+						return i;
+					}
+				}
+			}
+		}
+		return -1;
+	}
+
+	int8 Pronoun::S_Parse(const char* word_chars, const uint8& length) const {
+		if (length < 4) // i.e  "it's"
+			return -1;
+
+		// ends with i'm
+		if (word_chars[length - 2] == '\'' && word_chars[length - 1] == 's') {
+			// Search for pronoun
+			char temp[WORD_CHAR_SIZE];
+			uint8 char_length = length - 2;
+			util::MemCpy(temp, word_chars, char_length); // copy chars except last 2 char "'s"
+
+
+			for (uint32 i = 0; i < amount; i++) { // Check all words
+				if (char_length == words[i].length) { // If they have same length
+					if (util::IsSameArray(temp, words[i].chars, char_length)) {
+						return i;
+					}
+				}
+			}
+		}
+		return -1;
+	}
+
+	int8 Pronoun::Re_Parse(const char* word_chars, const uint8& length) const {
+		if (length < 5) // i.e  "we're"
+			return -1;
+
+		// ends with i'm
+		if (word_chars[length - 3] == '\'' && word_chars[length - 2] == 'r' && word_chars[length - 1] == 'e') {
+			// Search for pronoun
+			char temp[WORD_CHAR_SIZE];
+			uint8 char_length = length - 3;
+			util::MemCpy(temp, word_chars, char_length); // copy chars except last 3 char "'re"
+
+			for (uint32 i = 0; i < amount; i++) { // Check all words
+				if (char_length == words[i].length) { // If they have same length
+					if (util::IsSameArray(temp, words[i].chars, char_length)) {
+						return i;
+					}
+				}
+			}
+		}
+		return -1;
+	}
+
+	int8 Pronoun::Ll_Parse(const char* word_chars, const uint8& length) const {
+		if (length < 4) // i.e  "i'll"
+			return -1;
+
+		// ends with i'm
+		if (word_chars[length - 3] == '\'' && word_chars[length - 2] == 'l' && word_chars[length - 1] == 'l') {
+			// Search for pronoun
+			char temp[WORD_CHAR_SIZE];
+			uint8 char_length = length - 3;
+			util::MemCpy(temp, word_chars, char_length); // copy chars except last 3 char "'ll"
+
+			for (uint32 i = 0; i < amount; i++) { // Check all words
+				if (char_length == words[i].length) { // If they have same length
+					if (util::IsSameArray(temp, words[i].chars, char_length)) {
+						return i;
+					}
+				}
+			}
+		}
+		return -1;
+	}
+
+	int8 Pronoun::Ve_Parse(const char* word_chars, const uint8& length) const {
+		if (length < 4) // i.e  "i've"
+			return -1;
+
+		// ends with i'm
+		if (word_chars[length - 3] == '\'' && word_chars[length - 2] == 'v' && word_chars[length - 1] == 'e') {
+			// Search for pronoun
+			char temp[WORD_CHAR_SIZE];
+			uint8 char_length = length - 3;
+			util::MemCpy(temp, word_chars, char_length); // copy chars except last 3 char "'ve"
+
+			for (uint32 i = 0; i < amount; i++) { // Check all words
+				if (char_length == words[i].length) { // If they have same length
+					if (util::IsSameArray(temp, words[i].chars, char_length)) {
+						return i;
+					}
+				}
+			}
+		}
+		return -1;
+	}
+
+	int8 Pronoun::ParseWord(const String& raw_string, TypeAndSuffixes& word, String& out_string, const bool write_result) const {
+		// return  1  : word found
+		// return -1  : The word has not found
+		// return -2  : Character size exceeds WORD_CHAR_SIZE size
+		// return -3  : Character size smaller than 1 characters. Empty.
+		// return -4  : There is some character which is not alphabetic
+
+		char temp[WORD_CHAR_SIZE];
+		uint8 lastIndex = 0;
+
+		for (uint32 i = 0; i < raw_string.Length(); i++) { // Read all chars
+			char letter = util::ToLowerCase(raw_string[i]);
+			if (letter != 0) {
+				temp[lastIndex] = letter;
+				lastIndex += 1; // Increase length by one
+			}
+			else if (raw_string[i] == '-' || raw_string[i] == '\'') {
+				temp[lastIndex] = raw_string[i];
+				lastIndex += 1; // Increase length by one
+			}
+			else if (raw_string[i] == ' ' || raw_string[i] == '\t') {
+				continue;
+			}
+			else if (raw_string[i] == '#' || raw_string[i] == '\0' || raw_string[i] == '\n') {
+				break;
+			}
+			else {
+				return -4; // There is some charachter which is not alphabetic
+			}
+		}
+
+		if (lastIndex > WORD_CHAR_SIZE) { // Size control
+			return -2;
+		}
+		else if (lastIndex < 1) { // Size control
+			return -3;
+		}
+
+		int32 id = FindWord(temp, lastIndex);
+		int8 id_m_parse = M_Parse(temp, lastIndex);
+		int8 id_s_parse = S_Parse(temp, lastIndex);
+		int8 id_re_parse = Re_Parse(temp, lastIndex);
+		int8 id_ll_parse = Ll_Parse(temp, lastIndex);
+		int8 id_ve_parse = Ve_Parse(temp, lastIndex);
+
+		if (id > -1) {
+			word.suffixes.push_back(8);
+		}
+		else if (id_m_parse > -1) {
+			word.suffixes.push_back(SuffixType::m_suffix);
+		}
+		else if (id_s_parse > -1) {
+			word.suffixes.push_back(SuffixType::s_suffix);
+		}
+		else if (id_re_parse > -1) {
+			word.suffixes.push_back(SuffixType::re_suffix);
+		}
+		else if (id_ll_parse > -1) {
+			word.suffixes.push_back(SuffixType::ll_suffix);
+		}
+		else if (id_ve_parse > -1) {
+			word.suffixes.push_back(SuffixType::ve_suffix);
+		}
+
+		if (write_result) {
+			if (id != -1) {
+				out_string += "1. ";
+				out_string.Append(words[id].chars, words[id].length);
+				out_string += '\n';
+				out_string.EndString();
+			}
+			else if (id_m_parse != -1) {
+				out_string += "\x1b[95m[Infectional Pronoun ('m)]: \x1b[0m\n";
+				out_string += "1. ";
+				out_string.Append(words[id_m_parse].chars, words[id_m_parse].length);
+				out_string += '\n';
+				out_string.EndString();
+			}
+			else if (id_s_parse != -1) {
+				out_string += "\x1b[95m[Infectional Pronoun ('s)]: \x1b[0m\n";
+				out_string += "1. ";
+				out_string.Append(words[id_s_parse].chars, words[id_s_parse].length);
+				out_string += '\n';
+				out_string.EndString();
+			}
+			else if (id_re_parse != -1) {
+				out_string += "\x1b[95m[Infectional Pronoun ('re)]: \x1b[0m\n";
+				out_string += "1. ";
+				out_string.Append(words[id_re_parse].chars, words[id_re_parse].length);
+				out_string += '\n';
+				out_string.EndString();
+			}
+			else if (id_ll_parse != -1) {
+				out_string += "\x1b[95m[Infectional Pronoun ('ll)]: \x1b[0m\n";
+				out_string += "1. ";
+				out_string.Append(words[id_ll_parse].chars, words[id_ll_parse].length);
+				out_string += '\n';
+				out_string.EndString();
+			}
+			else if (id_ve_parse != -1) {
+				out_string += "\x1b[95m[Infectional Pronoun ('ve)]: \x1b[0m\n";
+				out_string += "1. ";
+				out_string.Append(words[id_ve_parse].chars, words[id_ve_parse].length);
+				out_string += '\n';
+				out_string.EndString();
+			}
+
+		}
+
+		if (id + id_m_parse + id_s_parse + id_re_parse + id_ll_parse + id_ve_parse > -6)
+			return 1;
+		else
+			return -1;
+	}
+
+
+#pragma endregion Pronoun
 }

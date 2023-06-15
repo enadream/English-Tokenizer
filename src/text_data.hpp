@@ -64,6 +64,7 @@ Example usages;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m parse \"speaking\"\x1b[4
 Example usage;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m print -irregulars\x1b[49m"
 
 #define HELP_PARAM_READ "\x1b[38;5;45mread\x1b[0m : This command reads data from disk and and can have these parameters;\n\
+\t all : This parameter reads all dictionaries in the default folder.\n\
 \t -dir : This parameter indicates the directory of the file.\n\
 \t -noun : This parameter specifies the file as noun.\n\
 \t -verb : This parameter specifies the file as verb.\n\

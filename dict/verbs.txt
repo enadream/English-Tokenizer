@@ -500,7 +500,7 @@ admeasure
 administer
 administrate
 admire
-admit
+admit /DL
 admix
 admonish
 adolesce
@@ -7976,7 +7976,7 @@ subluxate
 submarine
 submerge
 submerse
-submit
+submit /DL
 subordinate
 suborn
 subpoena

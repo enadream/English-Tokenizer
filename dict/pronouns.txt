@@ -39,6 +39,11 @@ themselves
 # Reciprocal Pronouns
 # each other
 # one another
+# Demonstrative pronouns 
+this
+these
+that
+those
 # Indefinite Pronouns
 another
 anybody
@@ -76,3 +81,4 @@ most
 none
 some
 such
+# 

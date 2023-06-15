@@ -15,9 +15,9 @@ namespace util {
 
 	// Copy one value to whole array
 	template <typename Type>
-	inline void MemSet(Type* dest, const Type& source, const uint32& length) {
+	inline void MemSet(Type* dest, const Type& value, const uint32& length) {
 		for (uint32 i = 0; i < length; i++) {
-			dest[i] = source;
+			dest[i] = value;
 		}
 	}
 

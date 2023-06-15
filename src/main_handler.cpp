@@ -17,7 +17,7 @@ namespace handle {
 		uint32 lineNumber = 1;
 		uint32 successfulParse = 0;
 		uint32 failedParse = 0;
-		String out_str(buffer.capacity);
+		String out_str(buffer.capacity * 5);
 		Clock timer;
 		String tempLine(256);
 
@@ -82,10 +82,11 @@ namespace handle {
 		FileSystem::WriteToDisk(out_str.Chars(), dir.EndString().Chars(), out_str.Length());
 	}
 
-	void MainHandler::Read(const WordType type, String& dir) {
+	void MainHandler::Read(const WordType type, const String& dir) {
 		Buffer buffer;
+		String directory = dir;
 
-		if (FileSystem::ReadFromDisk(buffer, dir.EndString().Chars()) == -1) {
+		if (FileSystem::ReadFromDisk(buffer, directory.EndString().Chars()) == -1) {
 			return;
 		}
 		switch (type)
@@ -183,16 +184,16 @@ namespace handle {
 			PrintResult(AuxiliaryVerb, result, out_str);
 			return;
 		case Pronoun:
-			result = pronoun.ParseWord(str, out_str, true);
+			result = pronoun.ParseWord(str, word, out_str, true);
 			PrintResult(Pronoun, result, out_str);
+			return;
+		case Adjective:
+			result = adj.ParseWord(str, word, out_str, true);
+			PrintResult(Adjective, result, out_str);
 			return;
 		case Adverb:
 			result = adv.ParseWord(str, out_str, true);
 			PrintResult(Adverb, result, out_str);
-			return;
-		case Adjective:
-			result = adj.ParseWord(str, out_str, true);
-			PrintResult(Adjective, result, out_str);
 			return;
 		case Preposition:
 			result = prepos.ParseWord(str, out_str, true);
@@ -220,14 +221,14 @@ namespace handle {
 		String outStrs[result.GetSize()];
 
 		// Found types
-		TypeAndSuffixes found_words[3];
+		util::Array<TypeAndSuffixes, 5> found_words;
 
 		ParseNoun(&raw_word, &result[0], &found_words[0], &outStrs[0], print_result);
 		ParseVerb(&raw_word, &result[1], &found_words[1], &outStrs[1], print_result);
 		ParseAuxVerb(&raw_word, &found_words[2], &result[2], &outStrs[2], print_result);
-		ParsePronoun(&raw_word, &result[3], &outStrs[3], print_result);
-		ParseAdv(&raw_word, &result[4], &outStrs[4], print_result);
-		ParseAdj(&raw_word, &result[5], &outStrs[5], print_result);
+		ParsePronoun(&raw_word, &found_words[3], &result[3], &outStrs[3], print_result);
+		ParseAdj(&raw_word, &found_words[4], &result[4], &outStrs[4], print_result);
+		ParseAdv(&raw_word, &result[5], &outStrs[5], print_result);
 		ParsePrepos(&raw_word, &result[6], &outStrs[6], print_result);
 		ParseConj(&raw_word, &result[7], &outStrs[7], print_result);
 		ParseInterj(&raw_word, &result[8], &outStrs[8], print_result);
@@ -256,8 +257,9 @@ namespace handle {
 					word.types.push_back(TypeAndSuffixes());
 					word.types.back().type = (WordType)(i + 1);
 
-					if (i > -1 && i < 3) { // Noun or verb and aux verb
+					if (i < found_words.GetSize()) { // Noun or verb and aux verb
 						word.types.back().suffixes = found_words[i].suffixes;
+						word.types.back().adrs = found_words[i].adrs;
 					}
 				}
 			}
@@ -267,6 +269,157 @@ namespace handle {
 			}
 		}
 
+	}
+
+	int8 MainHandler::DoesExistType(const WordToken& word, WordType type) {
+
+		for (int8 i = 0; i < word.types.size(); i++) {
+			if (word.types.at(i).type == type) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	int16 MainHandler::SyntaxChecker(std::vector<WordToken>& words) {
+		// return -1 : no result
+		// return 1 : pronoun + v1 + ....
+		// return 2 : pronoun + v:s + ....
+		// return 3 : pronoun + v2 + ...
+		// return 4 : pronoun + (aux verb) + v + ...
+
+		int8 firstPronoun = DoesExistType(words.at(0), WordType::Pronoun);
+
+		if (firstPronoun == -1)
+			return -1;
+
+		// v1 and v:s check
+		int8 v1_check = DoesExistType(words.at(1), WordType::Verb);
+
+		if (v1_check != -1 && DoesExistType(words.at(2), WordType::Verb) == -1)
+		{
+			if (words.at(1).types.at(v1_check).suffixes.at(0) == verb::BaseForm) {
+				words.at(1).types.at(0) = words.at(1).types.at(v1_check);
+				return 1;
+			}
+			else if (words.at(1).types.at(v1_check).suffixes.at(0) == verb::S_Parsed) {
+				words.at(1).types.at(0) = words.at(1).types.at(v1_check);
+				return 2;
+			}
+			else if (words.at(1).types.at(v1_check).suffixes.at(0) == verb::ED_Parsed ||
+				words.at(1).types.at(v1_check).suffixes.at(0) == verb::IrregularVerb_V2) {
+
+				words.at(1).types.at(0) = words.at(1).types.at(v1_check);
+				return 3;
+			}
+		}
+
+		// auxiliary check
+		for (int8 i = 0; i < words.at(1).types.size(); i++) {
+			if (words.at(1).types.at(i).type == WordType::AuxiliaryVerb) {
+				return 4;
+			}
+		}
+
+		return -1;
+	}
+
+	void MainHandler::QuGenerate(const String& str) {
+		String out_str(10000);
+
+		std::vector<WordToken> words;
+		// Tokenize input
+		tokenize.ParseString(str);
+
+		// Parse each sentence 
+		for (uint32 i = 0; tokenize.sentences[i].Tokens() != nullptr; i++) {
+			words.reserve(tokenize.sentences[i].Amount());
+			// Parse each token
+			for (uint32 j = 0; j < tokenize.sentences[i].Amount(); j++) {
+				// Copy adress of word to words
+				words.push_back(WordToken());
+				words.back().data = &tokenize.sentences[i][j];
+				// Parse token
+				ParseMultiple(tokenize.sentences[i][j], false, words.back());
+			}
+
+			// Syntax parse
+			int16 syntax_res = SyntaxChecker(words);
+			switch (syntax_res) {
+			case -1:
+				out_str = "Failed to perform syntax parser for the sentence.\n";
+				break;
+			case 1:
+			{
+				WordToken question_word;
+				question_word.data = new String("Do");
+				words.insert(words.begin(), question_word);
+			}
+			break;
+			case 2:
+			{
+				WordToken question_word;
+				question_word.data = new String("Does");
+				words.insert(words.begin(), question_word);
+				// Update the verb
+				(words.at(2).data)->SetLength(0);
+				(words.at(2).data)->Append(((verb::Verb*)words.at(2).types.at(0).adrs)->chars, ((verb::Verb*)words.at(2).types.at(0).adrs)->length);
+			}
+			break;
+			case 3:
+			{
+				WordToken question_word;
+				question_word.data = new String("Did");
+				words.insert(words.begin(), question_word);
+				// Update the verb
+				verb::Verb* baseform = verb.FindBaseVerb((verb::Verb*)words.at(2).types.at(0).adrs);
+				(words.at(2).data)->SetLength(0);
+				(words.at(2).data)->Append(baseform->chars, baseform->length);
+				break;
+			}
+			case 4:
+				WordToken rep_word;
+				rep_word = words.at(0);
+				words.at(0) = words.at(1);
+				words.at(1) = rep_word;
+				break;
+			};
+
+			// Add Question mark
+			if (words.back().types.at(0).type == WordType::Punctuation) {
+				*words.back().data = "?";
+			}
+			else {
+				WordToken question_word;
+				question_word.data = new String("?");
+				words.push_back(question_word);
+			}
+
+			// Words to string
+			if (syntax_res != -1) {
+				out_str += "\x1b[38;5;198m[QUESTION]: \x1b[0m";
+				WordsToSentence(words, out_str);
+			}
+
+
+			// Delete words in sentence
+			words.clear();
+		}
+
+		// Print result
+		std::cout << out_str.EndString().Chars();
+		// Free tokens
+		tokenize.FreeAll();
+	}
+
+	void MainHandler::WordsToSentence(std::vector<WordToken>& words, String& out_str) {
+		for (int16 i = 0; i < words.size(); i++)
+		{
+			out_str += *words.at(i).data;
+			out_str += ' ';
+		}
+		out_str += '\n';
 	}
 
 	void MainHandler::ParseSentence(const String& str) {
@@ -316,14 +469,15 @@ namespace handle {
 		int32* result, String* out_string, const bool write_result) {
 		*result = aux_verb.ParseWord(*raw_word, *word, *out_string, write_result);
 	}
-	void MainHandler::ParsePronoun(const String* raw_word, int32* result, String* out_string, const bool write_result) {
-		*result = pronoun.ParseWord(*raw_word, *out_string, write_result);
+	void MainHandler::ParsePronoun(const String* raw_word, TypeAndSuffixes* word,
+		int32* result, String* out_string, const bool write_result) {
+		*result = pronoun.ParseWord(*raw_word, *word, *out_string, write_result);
+	}
+	void MainHandler::ParseAdj(const String* raw_word, TypeAndSuffixes* word, int32* result, String* out_string, const bool write_result) {
+		*result = adj.ParseWord(*raw_word, *word, *out_string, write_result);
 	}
 	void MainHandler::ParseAdv(const String* raw_word, int32* result, String* out_string, const bool write_result) {
 		*result = adv.ParseWord(*raw_word, *out_string, write_result);
-	}
-	void MainHandler::ParseAdj(const String* raw_word, int32* result, String* out_string, const bool write_result) {
-		*result = adj.ParseWord(*raw_word, *out_string, write_result);
 	}
 	void MainHandler::ParsePrepos(const String* raw_word, int32* result, String* out_string, const bool write_result) {
 		*result = prepos.ParseWord(*raw_word, *out_string, write_result);
@@ -434,14 +588,35 @@ namespace handle {
 				case verb::ING_Parsed:
 					out_str += "\x1b[95m:ing\x1b[0m";
 					break;
-				case WordType::Negative:
-					out_str += "\x1b[95m:Neg\x1b[0m";
-					break;
 				case noun::CliticS:
 					out_str += "\x1b[95m:'s\x1b[0m";
 					break;
 				case noun::PluralPoss:
 					out_str += "\x1b[95m:s'\x1b[0m";
+					break;
+				case SuffixType::Negative:
+					out_str += "\x1b[95m:Neg\x1b[0m";
+					break;
+				case SuffixType::m_suffix:
+					out_str += "\x1b[95m:'m\x1b[0m";
+					break;
+				case SuffixType::s_suffix:
+					out_str += "\x1b[95m:'s\x1b[0m";
+					break;
+				case SuffixType::re_suffix:
+					out_str += "\x1b[95m:'re\x1b[0m";
+					break;
+				case SuffixType::ll_suffix:
+					out_str += "\x1b[95m:'ll\x1b[0m";
+					break;
+				case SuffixType::ve_suffix:
+					out_str += "\x1b[95m:'ve\x1b[0m";
+					break;
+				case SuffixType::adj_er:
+					out_str += "\x1b[95m:er\x1b[0m";
+					break;
+				case SuffixType::adj_est:
+					out_str += "\x1b[95m:est\x1b[0m";
 					break;
 				default:
 					out_str += "\x1b[31mUnknownType:";
@@ -545,14 +720,35 @@ namespace handle {
 				case verb::ING_Parsed:
 					out_str += ":ing";
 					break;
-				case WordType::Negative:
-					out_str += ":Neg";
-					break;
 				case noun::CliticS:
 					out_str += ":'s";
 					break;
 				case noun::PluralPoss:
 					out_str += ":s'";
+					break;
+				case SuffixType::Negative:
+					out_str += ":Neg";
+					break;
+				case SuffixType::m_suffix:
+					out_str += ":'m";
+					break;
+				case SuffixType::s_suffix:
+					out_str += ":'s";
+					break;
+				case SuffixType::re_suffix:
+					out_str += ":'re";
+					break;
+				case SuffixType::ll_suffix:
+					out_str += ":'llm";
+					break;
+				case SuffixType::ve_suffix:
+					out_str += ":'ve";
+					break;
+				case SuffixType::adj_er:
+					out_str += ":er";
+					break;
+				case SuffixType::adj_est:
+					out_str += ":est";
 					break;
 				default:
 					out_str += "UnknownType:";

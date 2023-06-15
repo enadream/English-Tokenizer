@@ -9,3 +9,6 @@ if
 whenever
 whether
 where
+because
+although
+unless

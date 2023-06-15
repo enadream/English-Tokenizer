@@ -11,6 +11,7 @@ Genus , Genera
 Diagnosis , Diagnoses
 Analysis , Analyses
 Man , Men
+seaman, seamen
 Person , People
 Foot , Feet
 Tooth , Teeth
@@ -31,7 +32,6 @@ Focus ,  Foci
 Series ,  Series
 Vita ,  Vitae
 Tuna ,  Tuna
-Quiz ,  Quizzes
 Index ,  Indices
 ########## DATA BASE ##########
 a'man
@@ -23265,7 +23265,6 @@ hellhole
 hellhound
 hellion
 hellman
-hello
 helm
 helmet
 helmetflower
@@ -23605,7 +23604,6 @@ hf
 hfc
 hg
 hhs
-hi
 hi-fi
 hiatus
 hiawatha
@@ -25398,7 +25396,6 @@ impurity
 imputation
 imu
 imuran
-in
 in-basket
 in-fighting
 in-joke
@@ -27919,6 +27916,7 @@ krakatao
 krakatau
 krakatoa
 krakau
+kraken
 krakow
 krasner
 kraurosis
@@ -47883,6 +47881,7 @@ sofa
 soffit
 sofia
 soft-cover
+softcover
 soft-shoe
 softback
 softball
@@ -55584,8 +55583,6 @@ vulva
 vulvectomy
 vulvitis
 vulvovaginitis
-w
-wa
 wabash
 wac
 wacko

@@ -17,6 +17,13 @@ namespace basic {
 		uint8 length = 0;
 	};
 
+	struct WordList { // 16 byte
+		SimpleWord* words;
+		uint16 capacity;
+		uint16 amount;
+		char indicator[2];
+	};
+
 	class UnindexedList {
 	protected:
 		SimpleWord* words = nullptr;
@@ -37,13 +44,6 @@ namespace basic {
 		void Free();
 	};
 
-	struct WordList { // 16 byte
-		SimpleWord* words;
-		uint16 capacity;
-		uint16 amount;
-		char indicator[2];
-	};
-
 	class IndexedList {
 	protected:
 		WordList* wordLists;
@@ -57,7 +57,7 @@ namespace basic {
 
 		int8 AddWord(const char* word_chars, const uint32& length);
 		void MultipleAdder(const char* file, const uint64& line_length, const char* type);
-		SimpleWord* FindWord(const char* word_chars, const uint8& str_length);
+		SimpleWord* FindWord(const char* word_chars, const uint8& str_length) const;
 		int8 ParseWord(const String& raw_string, String& out_string, const bool write_result);
 		void Free();
 	};
@@ -66,6 +66,34 @@ namespace basic {
 	private:
 		int32 N_Parse(const char* word_chars, const uint8& length) const;
 
+	public:
+		int8 ParseWord(const String& raw_string, TypeAndSuffixes& word, String& out_string, const bool write_result) const;
+	};
+
+	class Pronoun : public UnindexedList {
+	private:// m_suffix,		s_suffix,			re_suffix,			ll_suffix,			ve_suffix
+		// To parse m suffix with pronoun I
+		int8 M_Parse(const char* word_chars, const uint8& length) const;
+		// To parse s suffix with pronouns He's She's It's, what's
+		int8 S_Parse(const char* word_chars, const uint8& length) const;
+		// To parse re suffix with pronouns you're
+		int8 Re_Parse(const char* word_chars, const uint8& length) const;
+		// To parse ll suffix with pronouns He'll, They'll 
+		int8 Ll_Parse(const char* word_chars, const uint8& length) const;
+		// To parse ve suffix with pronouns you've, they've, we've
+		int8 Ve_Parse(const char* word_chars, const uint8& length) const;
+
+	public:
+		int8 ParseWord(const String& raw_string, TypeAndSuffixes& word, String& out_string, const bool write_result) const;
+	};
+
+
+	class Adjective : public IndexedList {
+	private:
+		// Comparative Parse
+		int8 Com_Parse(const char* word_chars, const uint8& length, SimpleWord*& out_word) const;
+		// Superlative Parse
+		int8 Sup_Parse(const char* word_chars, const uint8& length, SimpleWord*& out_word) const;
 	public:
 		int8 ParseWord(const String& raw_string, TypeAndSuffixes& word, String& out_string, const bool write_result) const;
 	};

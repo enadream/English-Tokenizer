@@ -926,6 +926,7 @@ electrostatically
 elegantly
 elementarily
 eloquently
+else
 elsewhere
 embarrassingly
 eminently
@@ -3130,6 +3131,7 @@ such
 suddenly
 sufficiently
 suggestively
+suicidally
 suitably
 sulkily
 sullenly

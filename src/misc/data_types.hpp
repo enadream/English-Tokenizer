@@ -1,10 +1,10 @@
 #pragma once
 
-typedef signed char        int8;   // -128 to 128
+typedef signed char        int8;   // -128 to 127
 typedef short int          int16;  // -32,768 to 32,767
 typedef int                int32;  // -2,147,483,648 to 2,147,483,647
 typedef long long          int64;  // -(2^63) to (2^63)-1
-typedef unsigned char      uint8;  // 0 to 256
+typedef unsigned char      uint8;  // 0 to 255
 typedef unsigned short     uint16; // 0 to 65,535
 typedef unsigned int       uint32; // 0 to 4,294,967,295
 typedef unsigned long long uint64; // 0 to 2^64-1

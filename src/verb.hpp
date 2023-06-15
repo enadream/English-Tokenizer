@@ -1,8 +1,6 @@
 #ifndef VERB_HPP
 #define VERB_HPP
 
-
-
 // User defined libs
 #include "misc/data_types.hpp"
 #include "misc/string.hpp"
@@ -103,6 +101,7 @@ namespace verb {
 		uint16 GetAllIrregularVerbs(String& out_string) const;
 		int8 ParseVerb(const String& raw_string, TypeAndSuffixes& word, String& out_string, const bool write_result) const;
 		void MultipleVerbAdder(const char* file, const uint64& size);
+		Verb* FindBaseVerb(Verb* verb);
 		int8 Free();
 	};
 }

@@ -2193,7 +2193,6 @@ big-ticket
 bigamous
 bigeminal
 bigeneric
-bigger
 biggish
 bigheaded
 bighearted
@@ -6596,6 +6595,7 @@ fantabulous
 fantastic
 fantastical
 far
+far-away
 far-famed
 far-fetched
 far-flung
@@ -10979,6 +10979,7 @@ mindful
 mindless
 mined
 mineral
+mineralogical
 mingy
 mini
 miniature
@@ -12219,7 +12220,6 @@ old-time
 old-womanish
 old-world
 olden
-older
 oldish
 oldline
 oleaceous
@@ -12397,6 +12397,7 @@ organismic
 organizational
 organized
 orgiastic
+orient
 oriental
 orientated
 orientating
@@ -16049,7 +16050,6 @@ small-seeded
 small-time
 small-toothed
 small-winged
-smaller
 smallish
 smarmy
 smart

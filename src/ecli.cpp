@@ -28,7 +28,7 @@ void Ecli::Start() {
 
 	auto printHeader = []() {
 		SetColor(3);
-		std::cout << "__________________ Welcome to the ChatBot (V0.71 @enadream) __________________\n\n" << std::endl;
+		std::cout << "__________________ Welcome to the ChatBot (V0.90 @enadream) __________________\n\n" << std::endl;
 		SetColor(7);
 	};
 
@@ -57,7 +57,42 @@ void Ecli::Start() {
 			printHeader();
 		}
 		else if (GetParamIdWName("delete", params, commandAmount) == 0) {
-			if (GetParamIdWName("-tokens", params, commandAmount) > 0) {
+			if (GetParamIdWName("all", params, commandAmount) > 0) {
+
+				mainHandler.tokenize.FreeAll();
+				Log::Info("Tokens deleted successfully.\n");
+
+				mainHandler.Delete(WordType::Noun);
+				Log::Info("Nouns deleted successfully.\n");
+
+				mainHandler.Delete(WordType::Verb);
+				Log::Info("Verbs deleted successfully.\n");
+
+				mainHandler.Delete(WordType::Pronoun);
+				Log::Info("Pronouns deleted successfully.\n");
+
+				mainHandler.Delete(WordType::Adverb);
+				Log::Info("Adverbs deleted successfully.\n");
+
+				mainHandler.Delete(WordType::Adjective);
+				Log::Info("Adjectives deleted successfully.\n");
+
+				mainHandler.Delete(WordType::Preposition);
+				Log::Info("Prepositions deleted successfully.\n");
+
+				mainHandler.Delete(WordType::Conjunction);
+				Log::Info("Conjunctions deleted successfully.\n");
+
+				mainHandler.Delete(WordType::Interjection);
+				Log::Info("Interjections deleted successfully.\n");
+
+				mainHandler.Delete(WordType::AuxiliaryVerb);
+				Log::Info("Auxiliary verbs deleted successfully.\n");
+
+				mainHandler.Delete(WordType::Determiner);
+				Log::Info("Determiners deleted successfully.\n");
+			}
+			else if (GetParamIdWName("-tokens", params, commandAmount) > 0) {
 				mainHandler.tokenize.FreeAll();
 				Log::Info("Tokens deleted successfully.\n");
 			}
@@ -67,7 +102,7 @@ void Ecli::Start() {
 			}
 			else if (GetParamIdWName("-verbs", params, commandAmount) > 0) {
 				mainHandler.Delete(WordType::Verb);
-				Log::Info("All the verbs deleted successfully.\n");
+				Log::Info("Verbs deleted successfully.\n");
 			}
 			else if (GetParamIdWName("-pronouns", params, commandAmount) > 0) {
 				mainHandler.Delete(WordType::Pronoun);
@@ -200,45 +235,57 @@ void Ecli::Start() {
 			}
 			std::cout << "\n";
 		}
+		else if (GetParamIdWName("q_generate", params, commandAmount) == 0) {
+			mainHandler.QuGenerate(params[0].value);
+			std::cout << "\n";
+		}
 		else if (GetParamIdWName("read", params, commandAmount) == 0) {
-
 			if (paramId = GetParamIdWName("-dir", params, commandAmount) > 0) {
-				if (GetParamIdWName("-all", params, commandAmount) > 0) {
-					// Read all files with default namaes
-				}
-				else if (GetParamIdWName("-noun", params, commandAmount) > 0) {
-					mainHandler.Read(WordType::Noun, params[paramId].value);
+				if (GetParamIdWName("-noun", params, commandAmount) > 0) {
+					mainHandler.Read(WordType::Noun, params[paramId].value.EndString());
 				}
 				else if (GetParamIdWName("-verb", params, commandAmount) > 0) {
-					mainHandler.Read(WordType::Verb, params[paramId].value);
+					mainHandler.Read(WordType::Verb, params[paramId].value.EndString());
 				}
 				else if (GetParamIdWName("-adverb", params, commandAmount) > 0) {
-					mainHandler.Read(WordType::Adverb, params[paramId].value);
+					mainHandler.Read(WordType::Adverb, params[paramId].value.EndString());
 				}
 				else if (GetParamIdWName("-pronoun", params, commandAmount) > 0) {
-					mainHandler.Read(WordType::Pronoun, params[paramId].value);
+					mainHandler.Read(WordType::Pronoun, params[paramId].value.EndString());
 				}
 				else if (GetParamIdWName("-adjective", params, commandAmount) > 0) {
-					mainHandler.Read(WordType::Adjective, params[paramId].value);
+					mainHandler.Read(WordType::Adjective, params[paramId].value.EndString());
 				}
 				else if (GetParamIdWName("-preposition", params, commandAmount) > 0) {
-					mainHandler.Read(WordType::Preposition, params[paramId].value);
+					mainHandler.Read(WordType::Preposition, params[paramId].value.EndString());
 				}
 				else if (GetParamIdWName("-conjunction", params, commandAmount) > 0) {
-					mainHandler.Read(WordType::Conjunction, params[paramId].value);
+					mainHandler.Read(WordType::Conjunction, params[paramId].value.EndString());
 				}
 				else if (GetParamIdWName("-interjection", params, commandAmount) > 0) {
-					mainHandler.Read(WordType::Interjection, params[paramId].value);
+					mainHandler.Read(WordType::Interjection, params[paramId].value.EndString());
 				}
 				else if (GetParamIdWName("-aux_verb", params, commandAmount) > 0) {
-					mainHandler.Read(WordType::AuxiliaryVerb, params[paramId].value);
+					mainHandler.Read(WordType::AuxiliaryVerb, params[paramId].value.EndString());
 				}
 				else if (GetParamIdWName("-determiner", params, commandAmount) > 0) {
-					mainHandler.Read(WordType::Determiner, params[paramId].value);
+					mainHandler.Read(WordType::Determiner, params[paramId].value.EndString());
 				}
 				else {
 					Log::Warning("No type parameter found in the command!\n");
 				}
+			}
+			else if (paramId = GetParamIdWName("all", params, commandAmount) > 0) {
+				mainHandler.Read(WordType::Noun, "dict/nouns.txt");
+				mainHandler.Read(WordType::Verb, "dict/verbs.txt");
+				mainHandler.Read(WordType::Adverb, "dict/advs.txt");
+				mainHandler.Read(WordType::Pronoun, "dict/pronouns.txt");
+				mainHandler.Read(WordType::Adjective, "dict/adjs.txt");
+				mainHandler.Read(WordType::Preposition, "dict/prepos.txt");
+				mainHandler.Read(WordType::Conjunction, "dict/conjs.txt");
+				mainHandler.Read(WordType::Interjection, "dict/interjs.txt");
+				mainHandler.Read(WordType::AuxiliaryVerb, "dict/verbs_aux.txt");
+				mainHandler.Read(WordType::Determiner, "dict/dets.txt");
 			}
 			else {
 				Log::Warning("No -dir parameter found in the command!\n");
