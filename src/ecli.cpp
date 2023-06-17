@@ -28,7 +28,7 @@ void Ecli::Start() {
 
 	auto printHeader = []() {
 		SetColor(3);
-		std::cout << "__________________ Welcome to the ChatBot (V0.90 @enadream) __________________\n\n" << std::endl;
+		std::cout << "__________________ Welcome to the ChatBot (V0.91 @enadream) __________________\n\n" << std::endl;
 		SetColor(7);
 	};
 
@@ -160,11 +160,14 @@ void Ecli::Start() {
 			else if (GetParamIdWName("print", params, commandAmount) > 0) {
 				Log::Info(HELP_PARAM_PRINT) << "\n\n";
 			}
+			else if (GetParamIdWName("q_generate", params, commandAmount) > 0) {
+				Log::Info(HELP_Q_GENERATE_PRINT) << "\n\n";
+			}
 			else if (GetParamIdWName("read", params, commandAmount) > 0) {
 				Log::Info(HELP_PARAM_READ) << "\n\n";
 			}
-			else if (GetParamIdWName("sr_parse", params, commandAmount) > 0) {
-				Log::Info(HELP_PARAM_SR_PARSE) << "\n\n";
+			else if (GetParamIdWName("s_parse", params, commandAmount) > 0) {
+				Log::Info(HELP_PARAM_S_PARSE) << "\n\n";
 			}
 			else if (GetParamIdWName("tester", params, commandAmount) > 0) {
 				Log::Info(HELP_PARAM_TESTER) << "\n\n";
@@ -292,7 +295,7 @@ void Ecli::Start() {
 			}
 			std::cout << "\n";
 		}
-		else if (GetParamIdWName("sr_parse", params, commandAmount) == 0) {
+		else if (GetParamIdWName("s_parse", params, commandAmount) == 0) {
 			mainHandler.ParseSentence(params[0].value);
 			std::cout << "\n";
 		}

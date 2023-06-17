@@ -15,8 +15,9 @@ They\n-p5: He\n-p6: She\n-p7: It\n"
 \t\x1b[38;5;45mexit\x1b[0m : Use this command to exit the program.\n\
 \t\x1b[38;5;45mhelp\x1b[0m : Use this command to get information about commands.\n\
 \t\x1b[38;5;45mparse\x1b[0m : Use this command to parse verbs, nouns, etc.\n\
-\t\x1b[38;5;45msr_parse\x1b[0m : Use this command to parse a sentence.\n\
+\t\x1b[38;5;45ms_parse\x1b[0m : Use this command to parse a sentence.\n\
 \t\x1b[38;5;45mprint\x1b[0m : Use this command to print some data.\n\
+\t\x1b[38;5;45mq_generate\x1b[0m : Use this command to create simple question.\n\
 \t\x1b[38;5;45mread\x1b[0m : Use this command to read data from disk.\n\
 \t\x1b[38;5;45mtester\x1b[0m : Use this command to run morphological tester.\n\
 \t\x1b[38;5;45mtokenize\x1b[0m : Use this command to tokenize a string.\n\
@@ -63,6 +64,9 @@ Example usages;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m parse \"speaking\"\x1b[4
 \t -tokens: This parameter prints lastly tokenized sentence.\n\
 Example usage;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m print -irregulars\x1b[49m"
 
+#define HELP_Q_GENERATE_PRINT "\x1b[38;5;45mprint\x1b[0m : This command generates question based on the sentence type\n\
+Example usage;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m q_generate \"He lives in Turkey.\"\x1b[49m"
+
 #define HELP_PARAM_READ "\x1b[38;5;45mread\x1b[0m : This command reads data from disk and and can have these parameters;\n\
 \t all : This parameter reads all dictionaries in the default folder.\n\
 \t -dir : This parameter indicates the directory of the file.\n\
@@ -79,8 +83,8 @@ Example usage;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m print -irregulars\x1b[49m
 Example usages;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m read -dir \"dict/nouns.txt\" -noun\x1b[49m\n\
 \t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m read -dir \"dict/verbs.txt\" -verb\x1b[49m"
 
-#define HELP_PARAM_SR_PARSE "\x1b[38;5;45msr_parse\x1b[0m : This command parse a sentence and doesn't take any parameter.\n\
-Example usage;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m sr_parse \"This is a simple sentence.\"\x1b[49m"
+#define HELP_PARAM_S_PARSE "\x1b[38;5;45ms_parse\x1b[0m : This command parse a sentence and doesn't take any parameter.\n\
+Example usage;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m s_parse \"This is a simple sentence.\"\x1b[49m"
 
 #define HELP_PARAM_TESTER "\x1b[38;5;45mtester\x1b[0m : This command runs the morphological tester.\n\
 Example usage;\n\t\x1b[48;5;237m\x1b[36mECLI $\x1b[39m tester -dir \"test.txt\"\x1b[49m"

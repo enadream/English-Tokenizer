@@ -646,7 +646,7 @@ namespace noun {
 			// Write s parse result
 			if (foundAmountSParser != 0) {
 				for (uint8 i = 0; i < foundAmountSParser; i++) {
-					out_string += "\x1b[95m[Infectional Noun (-s)]: \x1b[0m";
+					out_string += "\x1b[95m[Inflectional Noun (-s)]: \x1b[0m";
 					uint16 id = foundAmount + i;
 					switch (found_nouns[id]->s)
 					{
@@ -682,11 +682,11 @@ namespace noun {
 				uint16 id = foundAmount; // Accessing the last element in found nouns
 
 				if (foundQuotationMark == 1) {
-					out_string += "\x1b[95m[Infectional Noun ('s)]: \x1b[0m\n";
+					out_string += "\x1b[95m[Inflectional Noun ('s)]: \x1b[0m\n";
 					writeNoun(*found_nouns[id], id);
 				}
 				else {
-					out_string += "\x1b[95m[Infectional Plural Noun Possessive (s')]: \x1b[0m";
+					out_string += "\x1b[95m[Inflectional Plural Noun Possessive (s')]: \x1b[0m";
 					switch (found_nouns[id]->s)
 					{
 					case None:

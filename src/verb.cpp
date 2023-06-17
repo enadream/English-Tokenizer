@@ -652,7 +652,7 @@ namespace verb {
 			}
 			// Inflectual verb ed results
 			for (uint16 i = 0; i < foundAmountEd; i++) {
-				out_string += "\x1b[95m[Infectional Verb (-ed)]: \x1b[0m";
+				out_string += "\x1b[95m[Inflectional Verb (-ed)]: \x1b[0m";
 				uint8 id = foundAmount + i;
 				switch (found_verbs[id]->suffixes.ed)
 				{
@@ -682,7 +682,7 @@ namespace verb {
 			}
 			// Inflectual verb ing results
 			for (uint16 i = 0; i < foundAmountIng; i++) {
-				out_string += "\x1b[95m[Infectional Verb (-ing)]: \x1b[0m";
+				out_string += "\x1b[95m[Inflectional Verb (-ing)]: \x1b[0m";
 				uint8 id = foundAmount + i;
 
 				switch (found_verbs[id]->suffixes.ing)
@@ -714,7 +714,7 @@ namespace verb {
 			}
 			// Inflectual verb s results
 			for (uint16 i = 0; i < foundAmountS; i++) {
-				out_string += "\x1b[95m[Infectional Verb (-s)]: \x1b[0m";
+				out_string += "\x1b[95m[Inflectional Verb (-s)]: \x1b[0m";
 				uint8 id = foundAmount + i;
 
 				switch (found_verbs[id]->suffixes.s)

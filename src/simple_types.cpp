@@ -740,32 +740,32 @@ namespace basic {
 					switch (com_res)
 					{
 					case 1:
-						out_string += "\x1b[95m[Infectional Adjective (er)]: \x1b[0m\n";
+						out_string += "\x1b[95m[Inflectional Adjective (er)]: \x1b[0m\n";
 						break;
 					case 2:
-						out_string += "\x1b[95m[Infectional Adjective ((x)er)]: \x1b[0m\n";
+						out_string += "\x1b[95m[Inflectional Adjective ((x)er)]: \x1b[0m\n";
 						break;
 					case 3:
-						out_string += "\x1b[95m[Infectional Adjective ((-y)+ier)]: \x1b[0m\n";
+						out_string += "\x1b[95m[Inflectional Adjective ((-y)+ier)]: \x1b[0m\n";
 						break;
 					case 4:
-						out_string += "\x1b[95m[Infectional Adjective (+r)]: \x1b[0m\n";
+						out_string += "\x1b[95m[Inflectional Adjective (+r)]: \x1b[0m\n";
 						break;
 					}
 
 					switch (sup_res)
 					{
 					case 1:
-						out_string += "\x1b[95m[Infectional Adjective (est)]: \x1b[0m\n";
+						out_string += "\x1b[95m[Inflectional Adjective (est)]: \x1b[0m\n";
 						break;
 					case 2:
-						out_string += "\x1b[95m[Infectional Adjective ((x)est)]: \x1b[0m\n";
+						out_string += "\x1b[95m[Inflectional Adjective ((x)est)]: \x1b[0m\n";
 						break;
 					case 3:
-						out_string += "\x1b[95m[Infectional Adjective ((-y)+iest)]: \x1b[0m\n";
+						out_string += "\x1b[95m[Inflectional Adjective ((-y)+iest)]: \x1b[0m\n";
 						break;
 					case 4:
-						out_string += "\x1b[95m[Infectional Adjective (st)]: \x1b[0m\n";
+						out_string += "\x1b[95m[Inflectional Adjective (st)]: \x1b[0m\n";
 						break;
 					}
 
@@ -871,7 +871,7 @@ namespace basic {
 				out_string.EndString();
 			}
 			if (id_not_parse != -1) {
-				out_string += "\x1b[95m[Infectional Auxiliary Verb (-n't)]: \x1b[0m\n";
+				out_string += "\x1b[95m[Inflectional Auxiliary Verb (-n't)]: \x1b[0m\n";
 				out_string += "1. ";
 				out_string.Append(words[id_not_parse].chars, words[id_not_parse].length);
 				out_string += '\n';
@@ -1070,35 +1070,35 @@ namespace basic {
 				out_string.EndString();
 			}
 			else if (id_m_parse != -1) {
-				out_string += "\x1b[95m[Infectional Pronoun ('m)]: \x1b[0m\n";
+				out_string += "\x1b[95m[Inflectional Pronoun ('m)]: \x1b[0m\n";
 				out_string += "1. ";
 				out_string.Append(words[id_m_parse].chars, words[id_m_parse].length);
 				out_string += '\n';
 				out_string.EndString();
 			}
 			else if (id_s_parse != -1) {
-				out_string += "\x1b[95m[Infectional Pronoun ('s)]: \x1b[0m\n";
+				out_string += "\x1b[95m[Inflectional Pronoun ('s)]: \x1b[0m\n";
 				out_string += "1. ";
 				out_string.Append(words[id_s_parse].chars, words[id_s_parse].length);
 				out_string += '\n';
 				out_string.EndString();
 			}
 			else if (id_re_parse != -1) {
-				out_string += "\x1b[95m[Infectional Pronoun ('re)]: \x1b[0m\n";
+				out_string += "\x1b[95m[Inflectional Pronoun ('re)]: \x1b[0m\n";
 				out_string += "1. ";
 				out_string.Append(words[id_re_parse].chars, words[id_re_parse].length);
 				out_string += '\n';
 				out_string.EndString();
 			}
 			else if (id_ll_parse != -1) {
-				out_string += "\x1b[95m[Infectional Pronoun ('ll)]: \x1b[0m\n";
+				out_string += "\x1b[95m[Inflectional Pronoun ('ll)]: \x1b[0m\n";
 				out_string += "1. ";
 				out_string.Append(words[id_ll_parse].chars, words[id_ll_parse].length);
 				out_string += '\n';
 				out_string.EndString();
 			}
 			else if (id_ve_parse != -1) {
-				out_string += "\x1b[95m[Infectional Pronoun ('ve)]: \x1b[0m\n";
+				out_string += "\x1b[95m[Inflectional Pronoun ('ve)]: \x1b[0m\n";
 				out_string += "1. ";
 				out_string.Append(words[id_ve_parse].chars, words[id_ve_parse].length);
 				out_string += '\n';
