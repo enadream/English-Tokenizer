@@ -27,7 +27,7 @@ To see a demonstration of BioSphere in action, click the image below:
  
  
  
- For a complete and detailed explanation of the project's architecture, data structures, and algorithms, please refer to the [**Report.pdf**](https://www.google.com/search?q=https://github.com/enadream/English-Tokenizer/blob/main/Report.pdf).
+ For a complete and detailed explanation of the project's architecture, data structures, and algorithms, please refer to the [**Report.pdf**](https://github.com/enadream/English-Tokenizer/blob/main/Report.pdf).
  
  
  
