@@ -152,7 +152,7 @@ To see a demonstration of BioSphere in action, click the image below:
  
  
     ```
-    git clone [https://github.com/enadream/English-Tokenizer.git](https://github.com/enadream/English-Tokenizer.git)
+    git clone https://github.com/enadream/English-Tokenizer.git
     cd English-Tokenizer
  
     ```
